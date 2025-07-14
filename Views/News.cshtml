@@ -1,0 +1,35 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.PublishedContent
+@{
+    Layout = "Master.cshtml";
+    var title = Model.Value<string>("pageTitle");
+    var articles = Model.Value<IEnumerable<IPublishedContent>>("articles");
+}
+
+<div class="container">
+    <h1>@title</h1>
+
+    <div class="row">
+        @foreach (var article in (articles ?? Enumerable.Empty<IPublishedContent>()).OrderByDescending(x => x.Value<DateTime>("publishDate")))
+        {
+            var headline = article.Value<string>("headline");
+            var summary = article.Value<string>("summary");
+            var date = article.Value<DateTime>("publishDate").ToString("MMM dd, yyyy");
+            var thumb = article.Value<IPublishedContent>("thumbnail");
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    @if (thumb != null)
+                    {
+                        <img src="@thumb.Url()" class="card-img-top" alt="@thumb.Name" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@headline</h5>
+                        <p class="text-muted">@date</p>
+                        <p class="card-text">@summary</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

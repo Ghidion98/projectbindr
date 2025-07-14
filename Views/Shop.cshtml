@@ -1,0 +1,50 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.PublishedContent
+
+@{
+    Layout = "Master.cshtml";
+
+    var title = Model.Value<string>("pageTitle");
+    var intro = Model.Value<string>("introText");
+    var products = Model.Value<IEnumerable<IPublishedContent>>("productList");
+}
+
+<div class="container">
+    <h1>@title</h1>
+
+    @if (!string.IsNullOrWhiteSpace(intro))
+    {
+        <div class="intro">@Html.Raw(intro)</div>
+    }
+
+    <div class="row mt-4">
+        @if (products != null && products.Any())
+        {
+            foreach (var product in products)
+            {
+                var name = product.Value<string>("productName");
+                var price = product.Value<decimal?>("price") ?? 0;
+                var image = product.Value<IPublishedContent>("productImage");
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        @if (image != null)
+                        {
+                            <img src="@image.Url()" class="card-img-top" alt="@image.Name" />
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@name</h5>
+                            <p class="card-text">$@price</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p>No products to display.</p>
+            </div>
+        }
+    </div>
+</div>

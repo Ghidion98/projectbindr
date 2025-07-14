@@ -1,0 +1,25 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "Master.cshtml";
+
+    var pageTitle = Model.Value<string>("pageTitle");
+    var bodyContent = Model.Value<string>("bodyContent");
+    var heroImage = Model.Value<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>("heroImage");
+}
+
+<div class="container">
+    <section class="hero">
+        @if (heroImage != null)
+        {
+            <img src="@heroImage.Url()" alt="@heroImage.Name" style="width: 100%; height: auto;" />
+        }
+        <h1>@pageTitle</h1>
+    </section>
+
+    <section class="content">
+        @if (!string.IsNullOrWhiteSpace(bodyContent))
+        {
+            @Html.Raw(bodyContent)
+        }
+    </section>
+</div>

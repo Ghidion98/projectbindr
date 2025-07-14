@@ -1,0 +1,33 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "Master.cshtml";
+
+    var title = Model.Value<string>("pageTitle");
+    var bodyText = Model.Value<string>("bodyText");
+    var email = Model.Value<string>("email");
+    var phone = Model.Value<string>("phone");
+    var mapEmbedUrl = Model.Value<string>("mapEmbedUrl");
+}
+
+<div class="container">
+    <h1>@title</h1>
+
+    @if (!string.IsNullOrWhiteSpace(bodyText))
+    {
+        <div class="contact-body">
+            @Html.Raw(bodyText)
+        </div>
+    }
+
+    <div class="contact-details">
+        <p><strong>Email:</strong> <a href="mailto:@email">@email</a></p>
+        <p><strong>Phone:</strong> <a href="tel:@phone">@phone</a></p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(mapEmbedUrl))
+    {
+        <div class="map-embed" style="margin-top: 2rem;">
+            <iframe src="@mapEmbedUrl" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+    }
+</div>
