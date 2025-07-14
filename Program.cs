@@ -1,14 +1,15 @@
-using Umbraco.Cms.Web.Common.ApplicationBuilder;
-using Umbraco.Extensions;
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
+builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
-    .AddComposers();
+    .AddComposers()
+    .Build();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
+
+await app.BootUmbracoAsync();
+
 
 app.UseUmbraco()
     .WithMiddleware(u =>
@@ -22,4 +23,4 @@ app.UseUmbraco()
         u.UseWebsiteEndpoints();
     });
 
-app.Run();
+await app.RunAsync();
