@@ -1,90 +1,50 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.PublishedContent
-@using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Extensions
 
 @{
-    Layout = "Master.cshtml";
+    Layout = "master.cshtml";
 
-    var authorImage = Model.Value<IPublishedContent>("authorProfileImage")?.Url();
-    var heroImage = Model.Value<IPublishedContent>("image")?.GetCropUrl(width: 1300, height: 1100);
-    var articleDate = Model.Value<DateTime>("articlePublishedDate");
-    var authorName = Model.Value<string>("authorName");
-    var articleBody = Model.Value<BlockGridModel>("articleBody");
-
-    var newsItemsRoot = Umbraco.Content(Guid.Parse("09f7daeb-f1a9-4cc5-a7dc-9d93b1ce36b4"));
-    var recentItems = newsItemsRoot?.ChildrenOfType("newsItems").Where(x => x.IsVisible()).Take(3);
-    var relatedItems = newsItemsRoot?.ChildrenOfType("newsItems").Where(x => x.IsVisible()).Take(5);
+    var pageTitle = Model.Name;
+    var heroImage = Model.Value<IPublishedContent>("image"); // Hero image
+    var bodyContent = Model.Value<string>("articleBody");     // Main article content
+    var authorName = Model.Value<string>("authorName");       // Author's name
+    var publishDate = Model.Value<DateTime?>("articlePublishedDate");  // Corrected date alias
+    var authorImage = Model.Value<IPublishedContent>("authorProfileImage"); // Author image
+}
+<!-- Hero Image -->
+@if (heroImage != null)
+{
+    <div style="background-image: url('@heroImage.Url()'); background-size: cover; background-position: center; height: 400px; display: flex; align-items: center; justify-content: center;">
+        <h1 style="color: white; font-size: 3rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">@pageTitle</h1>
+    </div>
 }
 
-@await Html.PartialAsync("Header")
-
-<div class="container py-5">
-    <h1 class="mb-4">@Model.Value("nameOfPage")</h1>
-
-    @if (!string.IsNullOrWhiteSpace(heroImage))
+<div class="container mt-5">
+    <!-- Author Info -->
+    @if (authorImage != null || !string.IsNullOrEmpty(authorName) || publishDate.HasValue)
     {
-        <img src="@heroImage" class="img-fluid mb-3" alt="@Model.Value("heroImageAltText")" />
-    }
-
-    <!-- Author -->
-    <div class="d-flex align-items-center my-4">
-        @if (!string.IsNullOrWhiteSpace(authorImage))
-        {
-            <img src="@authorImage" class="rounded-circle me-3" width="80" height="80" alt="@authorName" />
-        }
-        <div>
-            <strong>Written by @authorName</strong><br />
-            <span>@articleDate.ToString("D")</span>
-        </div>
-    </div>
-
-    <!-- Fallback for Article Body Block Grid -->
-    @if (articleBody != null)
-    {
-        foreach (var block in articleBody)
-        {
-            if (block.Content != null)
+        <div class="d-flex align-items-center mb-4">
+            @if (authorImage != null)
             {
-                <div class="mb-4">
-                    <strong>@block.Content.ContentType.Alias</strong>
-                    <div>@Html.Raw(block.Content.Value("text"))</div>
-                </div>
+                <img src="@authorImage.Url()" alt="@authorName"
+                     style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-right: 16px;" />
             }
-        }
-    }
-
-    <!-- Recent Posts -->
-    <div class="mt-5">
-        <h3>Recent Posts</h3>
-        @foreach (var item in recentItems)
-        {
-            var img = item.Value<IPublishedContent>("image");
-            var thumb = img?.GetCropUrl(130, 110);
-
-            <div class="d-flex mb-2">
-                <img src="@thumb" class="me-2" width="130" height="110" />
-                <div><a href="@item.Url()" class="text-dark">@item.Name</a></div>
+            <div>
+                @if (!string.IsNullOrEmpty(authorName))
+                {
+                    <strong>Written by @authorName</strong><br />
+                }
+                @if (publishDate.HasValue)
+                {
+                    <small>@publishDate.Value.ToString("dddd, MMMM dd, yyyy")</small>
+                }
             </div>
-        }
-    </div>
-
-    <!-- Related News -->
-    <div class="mt-5">
-        <h3>Related News</h3>
-        <div class="row">
-            @foreach (var item in relatedItems)
-            {
-                var img = item.Value<IPublishedContent>("image");
-                var relatedImg = img?.GetCropUrl(382, 320);
-
-                <div class="col-md-3 mb-4">
-                    <a href="@item.Url()">
-                        <img src="@relatedImg" class="img-fluid" alt="@item.Name" />
-                        <h5 class="mt-2">@item.Name</h5>
-                    </a>
-                </div>
-            }
         </div>
+    }
+
+    <!-- Article Body -->
+    <div class="article-body">
+        @Html.Raw(bodyContent)
     </div>
 </div>

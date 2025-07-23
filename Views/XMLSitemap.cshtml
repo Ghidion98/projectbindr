@@ -5,6 +5,7 @@
 @{
     Layout = null;
     Context.Response.ContentType = "text/xml";
+
     const string DATE_FORMAT = "yyyy-MM-ddTHH:mm:sszzz";
 
     var home = Model.AncestorOrSelf("home");
@@ -31,26 +32,21 @@
             }
         }
     }
-
-    // Build XML as string
-    var sitemap = new System.Text.StringBuilder();
-    sitemap.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    sitemap.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-
-    foreach (var page in allPages)
-    {
-        var loc = page.Url(mode: UrlMode.Auto); // ✅ Correct for Umbraco 15+
-        var lastmod = page.UpdateDate.ToString(DATE_FORMAT);
-        var priority = page.Level == 1 ? "1.0" : "0.5";
-
-        sitemap.AppendLine("  <url>");
-        sitemap.AppendLine($"    <loc>{loc}</loc>");
-        sitemap.AppendLine($"    <lastmod>{lastmod}</lastmod>");
-        sitemap.AppendLine($"    <priority>{priority}</priority>");
-        sitemap.AppendLine("  </url>");
-    }
-
-    sitemap.AppendLine("</urlset>");
 }
 
-@Html.Raw(sitemap.ToString())
+@Html.Raw("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+@foreach (var page in allPages)
+{
+    var loc = page.Url(mode: UrlMode.Auto);
+    var lastmod = page.UpdateDate.ToString(DATE_FORMAT);
+    var priority = page.Level == 1 ? "1.0" : "0.5";
+<text>
+  <url>
+    <loc>@loc</loc>
+    <lastmod>@lastmod</lastmod>
+    <priority>@priority</priority>
+  </url>
+</text>
+}
+</urlset>

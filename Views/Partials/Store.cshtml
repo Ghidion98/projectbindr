@@ -1,6 +1,50 @@
-<section class="py-5">
-    <div class="container text-center">
-        <h2>Store</h2>
-        <p>Explore our curated selection of premium products.</p>
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+
+@{
+    var imageItem = Model.Value<MediaWithCrops>("productItemImage", fallback: Fallback.ToAncestors);
+    var imageItem626x626Url = imageItem?.GetCropUrl(626, 626, furtherOptions: "&format=jpg");
+    var imageItem296x296Url = imageItem?.GetCropUrl(296, 296, furtherOptions: "&format=jpg");
+
+    var altText = Model.Value<string>("productItemImageAltText", fallback: Fallback.ToAncestors);
+    var productItemLink = Model.Value<Link>("productItemURLLink", fallback: Fallback.ToAncestors);
+    var buttonText = Model.Value<string>("productItemButtonText", fallback: Fallback.ToAncestors);
+}
+
+<!-- Store section -->
+<div id="store" class="pt-lg-5 pb-lg-12 mb-12">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-12">
+                @if (!string.IsNullOrWhiteSpace(imageItem626x626Url))
+                {
+                    <picture>
+                        <source media="(max-width: 399px)" srcset="@imageItem296x296Url">
+                        <source media="(min-width: 400px)" srcset="@imageItem626x626Url">
+                        <img src="@imageItem626x626Url"
+                             alt="@altText"
+                             loading="lazy"
+                             class="img-fluid w-100 p-3 rounded"
+                             width="626" height="626" />
+                    </picture>
+                }
+            </div>
+
+            <div class="col-md-5 col-12 d-flex align-items-center px-10">
+                <div>
+                    <h3 class="fs-2">@Model.Value("productItemHeadline", fallback: Fallback.ToAncestors)</h3>
+                    <p>@Model.Value("productItemText", fallback: Fallback.ToAncestors)</p>
+
+                    @if (productItemLink != null && !string.IsNullOrWhiteSpace(productItemLink.Url))
+                    {
+                        <p class="fw-bold">
+                            <a href="@productItemLink.Url">@buttonText</a>
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-</section>
+</div>

@@ -1,5 +1,79 @@
-<section class="text-center py-3">
-    <a href="https://facebook.com" class="me-3">Facebook</a>
-    <a href="https://linkedin.com" class="me-3">LinkedIn</a>
-    <a href="mailto:info@abahughes.com">Email Us</a>
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+
+<!-- Social section -->
+<section id="social" class="container py-18">
+    <div class="row">
+        <div class="col-sm-12 col-md-6 col-lg-8 px-5 px-sm-0">
+            <h2 class="mt-5 mb-5 fs-2 text text-center text-md-start">Subscribe to Our Newsletter</h2>
+            <hr class="my-2" />
+            <div class="d-grid gap-2 d-md-flex justify-content-center justify-content-md-start">
+                <a href="/newsletter-sign-up/">
+                    <button type="button" class="btn btn-abahughes px-8 mt-2">Subscribe</button>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-6 col-lg-4 border-start mt-8 mt-sm-0">
+            <h3 class="text-center">Connect with Us</h3>
+            <div class="container">
+                <div class="row justify-content-evenly">
+                    <div class="col-4 pt-5">
+                        @{
+                            var fb = Model.Value<Link>("facebookLink");
+                            if (fb != null && !string.IsNullOrWhiteSpace(fb.Url))
+                            {
+                                <a href="@fb.Url" target="@fb.Target">
+                                    <img src="/media/xdffb5yr/square-facebook-brands.svg" width="25" height="25" class="mx-auto d-block" />
+                                    <div class="text-center fw-light fs-6 pt-2">Facebook</div>
+                                </a>
+                            }
+                        }
+                    </div>
+
+                    <div class="col-4 pt-5">
+                        @{
+                            var li = Model.Value<Link>("linkedInLink");
+                            if (li != null && !string.IsNullOrWhiteSpace(li.Url))
+                            {
+                                <a href="@li.Url" target="@li.Target">
+                                    <img src="/media/22cir1cb/linkedin-brands.svg" width="25" height="25" class="mx-auto d-block" />
+                                    <div class="text-center fw-light fs-6 pt-2">LinkedIn</div>
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="row justify-content-evenly">
+                    <div class="col-4 pt-5">
+                        @{
+                            var pin = Model.Value<Link>("pinterestLink");
+                            if (pin != null && !string.IsNullOrWhiteSpace(pin.Url))
+                            {
+                                <a href="@pin.Url" target="@pin.Target">
+                                    <img src="/media/mq3ajugm/pinterest-brands.svg" width="25" height="25" class="mx-auto d-block" />
+                                    <div class="text-center fw-light fs-6 pt-2">Pinterest</div>
+                                </a>
+                            }
+                        }
+                    </div>
+
+                    <div class="col-4 pt-5">
+                        @{
+                            var ig = Model.Value<Link>("instagramLink");
+                            if (ig != null && !string.IsNullOrWhiteSpace(ig.Url))
+                            {
+                                <a href="@ig.Url" target="@ig.Target">
+                                    <img src="/media/quealrgf/instagram-brands.svg" width="25" height="25" class="mx-auto d-block" />
+                                    <div class="text-center fw-light fs-6 pt-2">Instagram</div>
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>

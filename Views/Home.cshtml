@@ -1,14 +1,11 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-
 @{
-    Layout = "Master.cshtml";
+    Layout = "master.cshtml";
 }
 
-@await Html.PartialAsync("Header")
-@await Html.PartialAsync("Hero Jumbotron")
 @await Html.PartialAsync("Services")
 @await Html.PartialAsync("Store")
-@await Html.PartialAsync("Portfolio")
+@await Html.PartialAsync("Portfolio") <!-- ✅ Now appears after Store -->
 @await Html.PartialAsync("Testimonials")
 @await Html.PartialAsync("ContactUs")
 @await Html.PartialAsync("SocialLinks")

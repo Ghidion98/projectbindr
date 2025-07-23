@@ -1,36 +1,78 @@
-<footer class="bg-dark text-white pt-4 pb-4 mt-5">
-    <div class="container text-center">
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <h5>About Us</h5>
-                <p>ABA Hughes is committed to delivering excellence through innovative design and professional development.</p>
-            </div>
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+@using System
+@using System.Collections.Generic
 
-            <div class="col-md-4 mb-3">
-                <h5>Quick Links</h5>
-                <ul class="list-unstyled">
-                    <li><a href="/" class="text-white text-decoration-none">Home</a></li>
-                    <li><a href="/about-us" class="text-white text-decoration-none">About</a></li>
-                    <li><a href="/portfolio" class="text-white text-decoration-none">Portfolio</a></li>
-                    <li><a href="/contact" class="text-white text-decoration-none">Contact</a></li>
-                </ul>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <h5>Connect</h5>
-                <a href="https://www.facebook.com" target="_blank" class="text-white me-3">
-                    <i class="bi bi-facebook"></i> Facebook
-                </a><br />
-                <a href="https://www.linkedin.com" target="_blank" class="text-white me-3">
-                    <i class="bi bi-linkedin"></i> LinkedIn
-                </a><br />
-                <a href="mailto:info@abahughes.com" class="text-white">
-                    <i class="bi bi-envelope"></i> Email Us
-                </a>
+@{
+    var companyLogo = Model.Value<IPublishedContent>("companyLogo", fallback: Fallback.ToAncestors);
+    DateTime today = DateTime.Today;
+}
+<!-- footer -->
+<div class="footer pt-12 bg-abahughes text-body">
+    <div class="container-fluid">
+        <div class="col-lg-2 col-md-4 col-12">
+            <div class="mb-4">
+                @if (companyLogo != null)
+                {
+                    var imageHeight = companyLogo.Value<int>("umbracoHeight");
+                    var imageWidth = companyLogo.Value<int>("umbracoWidth");
+                    <img src="@companyLogo.GetCropUrl(90, 90, furtherOptions: "&format=jpg")"
+                         alt="@companyLogo.Name"
+                         loading="lazy"
+                         class="img-responsive mx-auto d-block"
+                         width="@imageWidth"
+                         height="@imageHeight" />
+                }
             </div>
         </div>
 
-        <hr class="border-light" />
-        <p class="mb-0">&copy; @DateTime.Now.Year ABA Hughes. All rights reserved.</p>
+        <div class="row justify-content-center mt-md-n12">
+            @{
+                var footerNav = Model.Value<IEnumerable<IPublishedElement>>("footerNavigation", fallback: Fallback.ToAncestors);
+                if (footerNav != null)
+                {
+                    foreach (var item in footerNav)
+                    {
+                        var linkName = item.Value<string>("footerLinkName");
+                        var link = item.Value<Umbraco.Cms.Core.Models.Link>("footerItemPageLink");
+
+                        <div class="col-md-1">
+                            <div class="mb-4">
+                                <p class="mb-4 text-center text-md-start">
+                                    <a href="@link.Url" class="text-white">@linkName</a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-2">
+                <div class="mb-4">
+                    <p class="mb-4 text-white text-center">@Model.Value("region", fallback: Fallback.ToAncestors)</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="mb-4">
+                    <p class="mb-4 text-white text-center">@Model.Value("contactTelephoneNumber", fallback: Fallback.ToAncestors)</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="mb-4">
+                    <p class="mb-4 text-white text-center">
+                        <a href="mailto:@Model.Value("emailAddress", fallback: Fallback.ToAncestors)" class="text-white">
+                            @Model.Value("emailAddress", fallback: Fallback.ToAncestors)
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-12">
+            <p class="mb-0 text-white text-center">&copy; @today.ToString("yyyy") Copyright by ABA Hughes</p>
+        </div>
     </div>
-</footer>
+</div>

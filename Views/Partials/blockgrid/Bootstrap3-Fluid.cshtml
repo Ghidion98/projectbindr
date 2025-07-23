@@ -1,0 +1,27 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridModel>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+
+@if (Model == null || !Model.Any()) { return; }
+
+<div class="container my-5">
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            var settings = item.Settings;
+            var columnSpan = settings?.HasProperty("columnSpan") == true ? settings.Value<int>("columnSpan") : 12;
+
+            <div class="col-md-@columnSpan mb-4">
+                @await Html.PartialAsync(GetPartialViewName(item.Content), item)
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetPartialViewName(IPublishedElement content)
+    {
+        // If your element type alias is "textBlock", returns: BlockGrid/Components/textBlock.cshtml
+        return $"BlockGrid/Components/{content.ContentType.Alias}";
+    }
+}

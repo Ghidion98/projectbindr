@@ -1,13 +1,99 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+@using Microsoft.AspNetCore.Http
 
-<header class="bg-dark text-white py-3">
-    <div class="container d-flex justify-content-between align-items-center">
-        <h1 class="h4 mb-0">ABA Hughes</h1>
-        <nav>
-            <a href="/" class="text-white me-3">Home</a>
-            <a href="/portfolio" class="text-white me-3">Portfolio</a>
-            <a href="/store" class="text-white me-3">Store</a>
-            <a href="/contact-us" class="text-white">Contact</a>
-        </nav>
-    </div>
-</header>
+@{
+    var menuIconItem56x56 = Model.Value<IPublishedContent>("flyOutMenuIcon", fallback: Fallback.ToAncestors);
+    var logoItem50x50 = Model.Value<IPublishedContent>("companyLogo", fallback: Fallback.ToAncestors);
+    var query = Context.Request.Query;
+    var selectedCategory = query.ContainsKey("category") ? query["category"].ToString() : "";
+    var isShopPage = Model.ContentType.Alias == "shop";
+}
+<!-- header -->
+<div class="fixed-top">
+    <nav class="navbar navbar-light py-0 text-dark bg-opacity-100">
+        <div class="container-fluid ps-0 pe-0">
+            <a class="navbar-brand ps-1 py-0" href="/">
+                @if (logoItem50x50 != null)
+                {
+                    var imageHeight = logoItem50x50.Value<int>("umbracoHeight");
+                    var imageWidth = logoItem50x50.Value<int>("umbracoWidth");
+                    <img src="@logoItem50x50.GetCropUrl(53, 53, furtherOptions: "&format=jpg")"
+                         alt="@logoItem50x50.Name"
+                         loading="lazy"
+                         class="img-responsive mx-auto d-block float-start me-2"
+                         width="53" height="53" />
+                }
+            </a>
+
+            <div class="mx-auto d-block float-end me-4">
+                <a href="@Url.Action("Checkout", "CartSurface")">
+                    <span class="fs-4">0</span>
+                    <img src="/media/jrim4cdn/cart.svg" width="30px" height="30px">
+                </a>
+            </div>
+
+            <button class="navbar-toggler border-0 p-0" type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar"
+                    aria-controls="offcanvasNavbar">
+                <span>
+                    @if (menuIconItem56x56 != null)
+                    {
+                        <img src="@menuIconItem56x56.GetCropUrl(50, 50, furtherOptions: "&format=png")"
+                             alt="@menuIconItem56x56.Name"
+                             loading="lazy"
+                             class="img-responsive"
+                             width="56px" height="56px" />
+                    }
+                </span>
+            </button>
+
+            <div class="offcanvas offcanvas-end"
+                 tabindex="-1" id="offcanvasNavbar"
+                 aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    @if (logoItem50x50 != null)
+                    {
+                        <img src="@logoItem50x50.GetCropUrl(50, 50, furtherOptions: "&format=png")"
+                             alt="@logoItem50x50.Name"
+                             loading="lazy"
+                             class="img-responsive d-block ms-5"
+                             width="50px" height="50px" />
+                    }
+
+                    <h3 class="offcanvas-title ms-n8 ms-sm-16 ms-md-n8" id="offcanvasNavbarLabel">
+                        @Model.Value("companyName", fallback: Fallback.ToAncestors)
+                    </h3>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav justify-content-end flex-grow-1 ps-5 pe-3 mb-4">
+                        @{
+                            var mainNav = Model.Value<IEnumerable<IPublishedElement>>("mainNavigation", fallback: Fallback.ToAncestors);
+
+                            if (mainNav != null)
+                            {
+                                foreach (var item in mainNav)
+                                {
+                                    var linkName = item.Value<string>("mainLinkName");
+                                    var link = item.Value<Link>("mainItemPageLink");
+
+                                    if (link != null && !string.IsNullOrWhiteSpace(link.Url))
+                                    {
+                                        <li class="nav-item">
+                                            <a class="nav-link text-black fw-bold" style="font-size: 1.8rem;" href="@link.Url">@linkName</a>
+                                        </li>
+                                    }
+                                }
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>

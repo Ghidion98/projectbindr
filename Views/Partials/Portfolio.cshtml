@@ -1,6 +1,49 @@
-<section class="py-5 bg-light">
-    <div class="container text-center">
-        <h2>Portfolio</h2>
-        <p>See the work we’ve done for amazing clients.</p>
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+@using System
+@using System.Collections.Generic
+
+@{
+    // Get the parent Portfolio container node by its key
+    var portfolioRoot = Umbraco.Content(Guid.Parse("0765a425-8f05-4fee-bd7a-b98d4108c175"));
+    var selection = portfolioRoot?
+        .Children()
+        .Where(x => x.ContentType.Alias == "portfolioPage" && x.IsVisible());
+}
+
+<!-- Portfolio section -->
+<div id="portfolio" class="pt-lg-5 pb-lg-12">
+    <div class="container">
+        <div class="row">
+            @if (selection != null)
+            {
+                foreach (var item in selection.Take(9))
+                {
+                    var portfolioImage = item.Value<IPublishedContent>("Image");
+                    var imageItem424x424Url = portfolioImage?.GetCropUrl(424, 424, furtherOptions: "&format=jpg");
+                    var imageItem328x328Url = portfolioImage?.GetCropUrl(328, 328, furtherOptions: "&format=jpg");
+                    var imageAltText = item.Value<string>("heroImageAltText");
+
+                    <div class="col-sm-12 col-md-4">
+                        <a href="@item.Url()">
+                            <picture>
+                                <source media="(max-width: 399px)" srcset="@imageItem328x328Url" />
+                                <source media="(min-width: 400px)" srcset="@imageItem424x424Url" />
+                                <img src="@imageItem424x424Url"
+                                     alt="@imageAltText"
+                                     loading="lazy"
+                                     class="img-fluid"
+                                     width="424"
+                                     height="424" />
+                            </picture>
+                        </a>
+                        <p class="mt-n8 ps-3 p-3 text-white bg-white">
+                            <a href="@item.Url()" class="text-white">@item.Name</a>
+                        </p>
+                    </div>
+                }
+            }
+        </div>
     </div>
-</section>
+</div>

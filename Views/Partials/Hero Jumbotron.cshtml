@@ -1,8 +1,30 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Microsoft.AspNetCore.Http
 
-<section class="jumbotron text-center bg-primary text-white p-5 mb-4">
-    <div class="container">
-        <h1 class="display-4">@Model.Value("pageTitle")</h1>
-        <p class="lead">@Model.Value("bodyContent")</p>
+@{
+    var cookieName = "heroImageIndex";
+    var index = 0;
+
+    var cookieValue = Context.Request.Cookies[cookieName];
+    if (!string.IsNullOrEmpty(cookieValue))
+    {
+        int.TryParse(cookieValue, out index);
+        index = (index + 1) % 3;
+    }
+
+    Context.Response.Cookies.Append(cookieName, index.ToString());
+
+    var imageList = new[]
+    {
+        "/media/f0gjlnyv/butterfly-slider-2.jpg",
+        "/media/vruj01rs/bishop-split-2.jpeg",
+        "/media/quqpshme/aba-2370.jpg"
+    };
+
+    var selectedImage = imageList[index];
+}
+
+<section class="home-hero">
+    <div style="background: url('@selectedImage'); background-size: cover; background-position: center; background-repeat: no-repeat; height: 100vh;">
     </div>
 </section>

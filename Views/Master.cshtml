@@ -1,112 +1,42 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models.PublishedContent
-@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels
+@using Umbraco.Extensions
 
 @{
     Layout = null;
-
-    var fullImage = "/media/3pzfvz1o/butterfly-thumnail-1.jpeg";
-    var fullImageUrl = "https://www.abahughes.com" + fullImage;
-    var pageUrl = Model?.Url();
-    var fullPageUrl = "https://www.abahughes.com" + pageUrl;
-
-    var metaTitle = Model?.Value<string>("metaTitle");
-    var metaDesc = Model?.Value<string>("metaDescription");
-    var ogTitle = Model?.Value<string>("nameOfPage");
-    var ogImageAlt = Model?.Value<string>("heroBackgroundImageAltText");
-    var publishDate = Model?.Value("publishDate");
-    var canonicalTag = Model?.Value<string>("canonicalTag");
-    var relNoFollow = Model?.Value<bool>("relNoFollowLink") ?? false;
-    var noIndex = Model?.Value<bool>("doNotIndex") ?? false;
-    var trackingCode = Model?.Value("globalCustomTrackingCode", fallback: Fallback.ToAncestors);
-    var customTags = Model?.Value("customHeadTags");
+    var metaTitle = Model.Value<string>("metaTitle");
+    var metaDescription = Model.Value<string>("metaDescription");
+    var customHead = Model.Value<string>("customHeadTags");
+    var trackingCode = Model.Value<string>("globalCustomTrackingCode");
+    var isHomepage = Model.Id == Umbraco.ContentAtRoot().FirstOrDefault()?.Id;
 }
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
     <title>@metaTitle</title>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="@metaDesc" />
-    <meta name="keywords" content="ABA hughes" />
-    <meta name="author" content="ABA hughes" />
-    <meta name="google-site-verification" content="YktB4Vd7qmaLyVn-haWr64zhfTrellaLTt5KmUaVnuA" />
-
-    <!-- Schema.org -->
-    <meta itemprop="name" content="@ogTitle" />
-    <meta itemprop="description" content="@metaDesc" />
-    <meta itemprop="image" content="@fullImageUrl" />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="@ogTitle" />
-    <meta name="twitter:description" content="@metaDesc" />
-    <meta name="twitter:image:src" content="@fullImageUrl" />
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="@ogTitle" />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="@fullPageUrl" />
-    <meta property="og:image" content="@fullImageUrl" />
-    <meta property="og:image:width" content="2000" />
-    <meta property="og:image:height" content="800" />
-    <meta property="og:image:alt" content="@ogImageAlt" />
-    <meta property="og:description" content="@metaDesc" />
-    <meta property="og:site_name" content="GraceLife London" />
-    <meta property="article:published_time" content="@publishDate" />
-    <meta property="article:section" content="Articles" />
-    <meta property="article:tag" content="Article Tag" />
-
-    <!-- Canonical -->
-    @if (!string.IsNullOrWhiteSpace(canonicalTag))
-    {
-        <link rel="canonical" href="https://www.abahughes.com@canonicalTag" />
-    }
-    else
-    {
-        <link rel="canonical" href="@pageUrl" />
-    }
-
-    @if (relNoFollow)
-    {
-        <meta name="robots" content="nofollow" />
-    }
-    @if (noIndex)
-    {
-        <meta name="robots" content="noindex" />
-    }
-
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/theme.css" />
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/media/1yejxhy4/favicon-32x32.png" type="image/x-icon" />
-
-    <!-- Custom Head Tags -->
-    @Html.Raw(customTags)
-
-    <!-- Analytics -->
-    @Html.Raw(trackingCode)
-
-    <!-- Alpine.js -->
+    <meta name="description" content="@metaDescription" />
+    <link rel="stylesheet" href="/css/theme.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <script defer src="https://unpkg.com/alpinejs@3.10.4/dist/cdn.min.js"></script>
-
-    <!-- Defer Bootstrap -->
-    <script>
-        window.addEventListener("load", function () {
-            const script = document.createElement("script");
-            script.src = "/scripts/bootstrap.bundle.min.js";
-            document.body.appendChild(script);
-        });
-    </script>
+    @Html.Raw(customHead)
+    @Html.Raw(trackingCode)
 </head>
 <body>
 
+    @* ✅ Only homepage: show hero image full width *@
+    @if (isHomepage)
+    {
+        <section class="home-hero">
+            @await Html.PartialAsync("Hero Jumbotron")
+        </section>
+    }
+
+    @* ✅ All other pages: only render content (no menu, no logo, no header) *@
     @RenderBody()
 
+    @* ✅ Footer once only *@
     @await Html.PartialAsync("Footer")
-
 </body>
 </html>

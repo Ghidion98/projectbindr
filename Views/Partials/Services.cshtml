@@ -1,6 +1,31 @@
-<section class="py-5 bg-light">
-    <div class="container text-center">
-        <h2>Our Services</h2>
-        <p>We offer design, development, and consultation services to grow your business.</p>
-    </div>
-</section>
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Extensions
+
+<!-- Services section -->
+<div id="services" class="py-10 pt-lg-20 pb-lg-12">
+   <div class="container">
+      <div class="row">
+         <div class="col-lg-4 col-md-6 col-12">
+            <span class="text-light fw-bold" style="font-size:160px;">01</span>
+            <div class="ms-12 mt-n16">
+               <h3>@Model.Value("sectionOneTitle")</h3>
+               <p>@Model.Value("sectionOneText")</p>
+            </div>
+         </div>
+         <div class="col-lg-4 col-md-6 col-12">
+            <span class="text-light fw-bold" style="font-size:160px;">02</span>
+            <div class="ms-12 mt-n16">
+               <h3>@Model.Value("sectionTwoTitle")</h3>
+               <p>@Model.Value("sectionTwoText")</p>
+            </div>
+         </div>
+         <div class="col-lg-4 col-md-6 col-12">
+            <span class="text-light fw-bold" style="font-size:160px;">03</span>
+            <div class="ms-12 mt-n16">
+               <h3>@Model.Value("section3Title")</h3>
+               <p>@Model.Value("section3Text")</p>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>

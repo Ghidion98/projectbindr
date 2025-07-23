@@ -27926,3 +27926,26 @@ div.im-colormask > div {
   caret-color: red;
   caret-shape: block;
 }
+.logo img {
+    max-height: 60px;
+    height: auto;
+    width: auto;
+}
+
+.menu-button {
+    font-size: 1.5rem;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.menu-button:hover {
+    background-color: #0056b3;
+}
+
+[x-cloak] {
+    display: none !important;
+}

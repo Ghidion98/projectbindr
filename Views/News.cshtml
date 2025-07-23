@@ -1,35 +1,50 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+
 @{
     Layout = "master.cshtml";
-    var title = Model.Value<string>("pageTitle");
-    var articles = Model.Value<IEnumerable<IPublishedContent>>("articles");
+
+    var heroImage = Model.Value<IPublishedContent>("image");
+    var heroImageUrl = heroImage?.Url();
+    var newsItems = Model.Children().Where(x => x.IsVisible()).OrderByDescending(x => x.CreateDate);
 }
 
-<div class="container">
-    <h1>@title</h1>
+<!-- Hero Image Section -->
+@if (!string.IsNullOrEmpty(heroImageUrl))
+{
+    <section style="position: relative; background-image: url('@heroImageUrl'); background-size: cover; background-position: center; height: 400px;">
+        <div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5);">
+            <h1 style="color: white; text-align: center; padding-top: 150px; font-size: 3rem;">@Model.Name</h1>
+        </div>
+    </section>
+}
 
+<!-- News Grid -->
+<section class="container py-5">
     <div class="row">
-        @foreach (var article in (articles ?? Enumerable.Empty<IPublishedContent>()).OrderByDescending(x => x.Value<DateTime>("publishDate")))
+        @foreach (var item in newsItems)
         {
-            var headline = article.Value<string>("headline");
-            var summary = article.Value<string>("summary");
-            var date = article.Value<DateTime>("publishDate").ToString("MMM dd, yyyy");
-            var thumb = article.Value<IPublishedContent>("thumbnail");
+            var itemImage = item.Value<IPublishedContent>("image");
+            var imageUrl = itemImage?.GetCropUrl(width: 480, height: 320, useCropDimensions: true);
+            var title = item.Name;
+            var summary = item.Value<string>("summary");
+            var url = item.Url();
 
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    @if (thumb != null)
-                    {
-                        <img src="@thumb.Url()" class="card-img-top" alt="@thumb.Name" />
-                    }
-                    <div class="card-body">
-                        <h5 class="card-title">@headline</h5>
-                        <p class="text-muted">@date</p>
-                        <p class="card-text">@summary</p>
+            <div class="col-md-4 mb-4">
+                <a href="@url" style="text-decoration: none; color: inherit;">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            <img src="@imageUrl" class="card-img-top" alt="@title" />
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@title</h5>
+                            <p class="card-text">@summary</p>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
         }
     </div>
-</div>
+</section>

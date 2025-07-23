@@ -1,7 +1,36 @@
-@* /Views/Partials/Testimonials.cshtml *@
-<div class="testimonials-section py-5">
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Extensions
+
+<!-- Testimonial section -->
+<div id="testimonials" class="pt-lg-6">
     <div class="container">
-        <h2>Testimonials</h2>
-        <p>This is a placeholder for the Testimonials section. Replace with real content.</p>
+        <div class="row">
+            <div class="col-12">
+                <div class="col-sm-12 col-md-10 offset-md-2 pb-12 pt-12 pt-lg-6 pb-lg-18 px-4">
+                    <div>
+                        @{
+                            var items = Model.Value<IEnumerable<IPublishedElement>>("testimonials", fallback: Fallback.ToAncestors)?
+                                .Where(x => x.IsVisible())
+                                .OrderBy(t => Guid.NewGuid());
+
+                            if (items != null)
+                            {
+                                foreach (var item in items.Take(1))
+                                {
+                                    var testimonialFrom = item.Value<string>("testimonialItemFrom");
+                                    var testimonialText = item.Value<string>("testimonialItemText");
+
+                                    <p class="lead fst-italic fw-light">@testimonialText</p>
+                                    <h5>@testimonialFrom</h5>
+                                }
+                            }
+                        }
+                    </div>
+                    <div class="text-light fw-bold float-end mt-n19" style="font-size:250px;">"</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

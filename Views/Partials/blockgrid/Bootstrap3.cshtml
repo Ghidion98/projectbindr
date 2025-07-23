@@ -1,0 +1,51 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridModel>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+
+@if (Model == null || !Model.Any()) { return; }
+
+<div class="umb-block-grid container">
+    <div class="row">
+        @foreach (var block in Model)
+        {
+            var settings = block.Settings;
+            var col = settings?.HasProperty("columnSpan") == true ? settings.Value<int>("columnSpan") : 12;
+
+            <div class="col-md-@col mb-4" style="@RenderInlineStyles(settings)">
+                @await Html.PartialAsync(GetPartialViewName(block.Content), block)
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetPartialViewName(IPublishedElement content)
+    {
+        return $"BlockGrid/Components/{content.ContentType.Alias}";
+    }
+
+    private string RenderInlineStyles(IPublishedElement settings)
+    {
+        if (settings == null) return "";
+
+        var styles = new List<string>();
+
+        if (settings.HasProperty("paddingTop"))
+        {
+            var pt = settings.Value<string>("paddingTop");
+            if (!string.IsNullOrWhiteSpace(pt))
+                styles.Add($"padding-top:{pt};");
+        }
+
+        if (settings.HasProperty("paddingBottom"))
+        {
+            var pb = settings.Value<string>("paddingBottom");
+            if (!string.IsNullOrWhiteSpace(pb))
+                styles.Add($"padding-bottom:{pb};");
+        }
+
+        // Add more styling rules if needed...
+
+        return string.Join(" ", styles);
+    }
+}
