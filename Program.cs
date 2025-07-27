@@ -2,7 +2,7 @@ using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Umbraco defaults and services
+// Configure Umbraco
 builder.Host.ConfigureUmbracoDefaults();
 
 builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
@@ -12,7 +12,6 @@ builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
 
 var app = builder.Build();
 
-// Use Umbraco middleware
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
