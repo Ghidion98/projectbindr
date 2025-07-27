@@ -30,6 +30,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'projectbindr'  # Make sure this matches your Azure App name
+          app-name: 'projectbindr'  # ✅ This must match the Azure App Service name exactly
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
