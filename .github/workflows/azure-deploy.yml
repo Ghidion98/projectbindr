@@ -19,17 +19,17 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore ./Umbraco15web/Umbraco15web.csproj
+        run: dotnet restore ./Umbraco15web.csproj
 
       - name: Build the project
-        run: dotnet build ./Umbraco15web/Umbraco15web.csproj --configuration Release --no-restore
+        run: dotnet build ./Umbraco15web.csproj --configuration Release --no-restore
 
       - name: Publish the app
-        run: dotnet publish ./Umbraco15web/Umbraco15web.csproj -c Release -o ./publish
+        run: dotnet publish ./Umbraco15web.csproj -c Release -o ./publish
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'projectbindr'  # must match your Azure Web App name
+          app-name: 'projectbindr'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
