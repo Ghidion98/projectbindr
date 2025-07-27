@@ -1,0 +1,116 @@
+# ----------------------------
+# CUSTOM FIX: allow publish folder
+# ----------------------------
+# publish/      <-- this line was ignored before. Now we allow it by commenting it out.
+# Uncommenting this will allow you to push the publish/ folder to GitHub.
+# ----------------------------
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Mono auto generated files
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+.vs/
+Generated\ Files/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# DotCover
+*.dotCover
+
+# StyleCop
+StyleCopReport.xml
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Azure publish profile
+*.Publish.xml
+*.pubxml
+*.publishproj
+
+# Azure scripts and tools
+PublishScripts/
+*.azurePubxml
+
+# SQL files
+*.mdf
+*.ldf
+*.ndf
+
+# Logs and diagnostics
+*.log
+*.svclog
+*.tmp
+*.cache
+
+# Node modules
+node_modules/
+
+# Mac and Windows OS system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+Desktop.ini
+
+# Umbraco files
+/umbraco/Data/CreatedPackages/
+/umbraco/Data/TEMP/
+/umbraco/Logs/
+/wwwroot/media/
+
+# Uncomment to ignore SQLite DBs (if you're not using them for content)
+/umbraco/Data/*.sqlite.db
+/umbraco/Data/*.sqlite.db-shm
+/umbraco/Data/*.sqlite.db-wal
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ----------------------------
+# Make sure we DO NOT ignore publish/
+# ----------------------------
+# publish/
+# ----------------------------
