@@ -1,4 +1,4 @@
-name: Deploy Umbraco 15 to Azure Web App (.NET 8)
+name: Deploy Umbraco 15 to Azure Web App (.NET 9)
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup .NET 8
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x' # ✅ Downgraded to correct SDK
+          dotnet-version: '9.0.x' # ✅ Downgraded to correct SDK
 
       - name: Restore dependencies
         run: dotnet restore
