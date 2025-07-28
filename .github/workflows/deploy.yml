@@ -22,12 +22,12 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ./Umbraco15web.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish -c Release --output publish
+        run: dotnet publish ./Umbraco15web.csproj --configuration Release --output publish
 
-      - name: Deploy to Azure
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'projectbindr'
