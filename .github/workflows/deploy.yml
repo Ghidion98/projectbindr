@@ -1,4 +1,4 @@
-name: Deploy Umbraco 15 to Azure Web App (.NET 9)
+name: Deploy Umbraco 15 to Azure (.NET 9)
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x' # ✅ Downgraded to correct SDK
+          dotnet-version: '9.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -24,13 +24,13 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Publish app
-        run: dotnet publish -c Release -o ./publish
+      - name: Publish
+        run: dotnet publish -c Release --output publish
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'projectbindr' # change this if needed
+          app-name: 'projectbindr'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
+          package: publish
