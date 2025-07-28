@@ -1,36 +1,36 @@
-name: Deploy Umbraco 15 to Azure (.NET 9)
+name: Deploy Umbraco 15.3.0 (.NET 9) to Azure
 
 on:
   push:
     branches:
-      - main
+      - main  # or your deployment branch
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: ✅ Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup .NET 9
+      - name: ✅ Setup .NET 9 SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: ✅ Restore NuGet packages
+        run: dotnet restore ./Umbraco15web.csproj
 
-      - name: Build
+      - name: ✅ Build the project
         run: dotnet build ./Umbraco15web.csproj --configuration Release --no-restore
 
-      - name: Publish
-        run: dotnet publish ./Umbraco15web.csproj --configuration Release --output publish
+      - name: ✅ Publish the app
+        run: dotnet publish ./Umbraco15web.csproj --configuration Release
 
-      - name: Deploy to Azure Web App
+      - name: 🚀 Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'projectbindr'
+          app-name: 'projectbindr'  # 🔁 Replace with your Azure App Service name
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: publish
+          package: ./bin/Release/net9.0/publish
