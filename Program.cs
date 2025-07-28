@@ -2,7 +2,6 @@ using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Umbraco
 builder.Host.ConfigureUmbracoDefaults();
 
 builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
