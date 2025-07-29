@@ -1,8 +1,6 @@
-using Umbraco.Cms.Web.Common.ApplicationBuilder;
+using Umbraco.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.ConfigureUmbracoDefaults();
 
 builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
     .AddBackOffice()
@@ -21,6 +19,7 @@ app.UseUmbraco()
     {
         u.UseBackOfficeEndpoints();
         u.UseWebsiteEndpoints();
+        // Remove .UseInstallerEndpoints() if it causes error
     });
 
 app.Run();
