@@ -3,7 +3,6 @@ using Umbraco.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Register Umbraco services properly
 builder.Services.AddUmbraco(builder.Environment, builder.Configuration)
     .AddBackOffice()
     .AddWebsite()
