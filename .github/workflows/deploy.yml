@@ -19,13 +19,13 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: ✅ Restore dependencies
-        run: dotnet restore ./Umbraco15web.csproj
+        run: dotnet restore ./ProjectBinder.csproj
 
       - name: ✅ Build the project
-        run: dotnet build ./Umbraco15web.csproj --configuration Release --no-restore
+        run: dotnet build ./ProjectBinder.csproj --configuration Release --no-restore
 
       - name: ✅ Publish the project
-        run: dotnet publish ./Umbraco15web.csproj --configuration Release --output ./publish --no-build
+        run: dotnet publish ./ProjectBinder.csproj --configuration Release --output ./publish --no-build
 
       - name: 🚀 Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
