@@ -24,27 +24,25 @@ export class UmbBackofficeContext extends UmbContextBase {
         this.version = this.#version.asObservable();
         // TODO: We need to ensure this request is called every time the user logs in, but this should be done somewhere across the app and not here [JOV]
         this.consumeContext(UMB_AUTH_CONTEXT, (authContext) => {
-            this.observe(authContext.isAuthorized, (isAuthorized) => {
+            this.observe(authContext?.isAuthorized, (isAuthorized) => {
                 if (!isAuthorized)
                     return;
                 this.#getVersion();
             });
         });
-        this.#init();
-    }
-    async #init() {
-        const userContext = await this.getContext(UMB_CURRENT_USER_CONTEXT);
-        this.observe(userContext.allowedSections, (allowedSections) => {
-            if (!allowedSections)
-                return;
-            // TODO: Please be aware that we re-initialize this initializer based on user permissions. I suggest we should solve this specific case should be improved by the ability to change the filter [NL]
-            new UmbExtensionsManifestInitializer(this, umbExtensionsRegistry, 'section', (manifest) => allowedSections.includes(manifest.alias), async (sections) => {
-                this.#allowedSections.setValue([...sections]);
-            }, 'umbAllowedSectionsManifestInitializer');
-        }, 'umbAllowedSectionsObserver');
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (userContext) => {
+            this.observe(userContext?.allowedSections, (allowedSections) => {
+                if (!allowedSections)
+                    return;
+                // TODO: Please be aware that we re-initialize this initializer based on user permissions. I suggest we should solve this specific case should be improved by the ability to change the filter [NL]
+                new UmbExtensionsManifestInitializer(this, umbExtensionsRegistry, 'section', (manifest) => allowedSections.includes(manifest.alias), async (sections) => {
+                    this.#allowedSections.setValue(sections);
+                }, 'umbAllowedSectionsManifestInitializer');
+            }, 'umbAllowedSectionsObserver');
+        });
     }
     async #getVersion() {
-        const { data } = await tryExecute(ServerService.getServerInformation());
+        const { data } = await tryExecute(this._host, ServerService.getServerInformation(), { disableNotifications: true });
         if (!data)
             return;
         // A quick semver parser (to remove the unwanted bits) [LK]
@@ -58,7 +56,11 @@ export class UmbBackofficeContext extends UmbContextBase {
         this.#activeSectionAlias.setValue(alias);
     }
     async serverUpgradeCheck() {
-        const version = await this.observe(this.version).asPromise();
+        const version = await this.observe(this.version)
+            .asPromise()
+            .catch(() => null);
+        if (!version)
+            return null;
         const repository = new UmbSysinfoRepository(this);
         return repository.serverUpgradeCheck(version);
     }

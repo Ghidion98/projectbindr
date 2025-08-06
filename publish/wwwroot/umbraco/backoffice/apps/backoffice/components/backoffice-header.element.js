@@ -11,7 +11,7 @@ let UmbBackofficeHeaderElement = class UmbBackofficeHeaderElement extends UmbLit
         return html `
 			<div id="appHeader">
 				<umb-backoffice-header-logo></umb-backoffice-header-logo>
-				<umb-backoffice-header-sections id="sections"></umb-backoffice-header-sections>
+				<umb-backoffice-header-sections></umb-backoffice-header-sections>
 				<umb-backoffice-header-apps></umb-backoffice-header-apps>
 			</div>
 		`;
@@ -30,7 +30,7 @@ let UmbBackofficeHeaderElement = class UmbBackofficeHeaderElement extends UmbLit
 				padding: 0 var(--uui-size-space-5);
 			}
 
-			#sections {
+			umb-backoffice-header-sections {
 				flex: 1 1 auto;
 			}
 		`,

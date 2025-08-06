@@ -9,7 +9,6 @@ import { UmbPreviewContext } from './preview.context.js';
 import { css, customElement, html, nothing, state, when } from '@umbraco-cms/backoffice/external/lit';
 import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-const elementName = 'umb-preview';
 /**
  * @element umb-preview
  */
@@ -55,7 +54,7 @@ let UmbPreviewElement = class UmbPreviewElement extends UmbLitElement {
 						src=${this._previewUrl}
 						title="Page preview"
 						@load=${this.#onIFrameLoad}
-						sandbox="allow-scripts"></iframe>
+						sandbox="allow-scripts allow-same-origin"></iframe>
 				</div>
 			</div>
 			<div id="menu">
@@ -190,7 +189,7 @@ __decorate([
     state()
 ], UmbPreviewElement.prototype, "_previewUrl", void 0);
 UmbPreviewElement = __decorate([
-    customElement(elementName)
+    customElement('umb-preview')
 ], UmbPreviewElement);
 export { UmbPreviewElement };
 export default UmbPreviewElement;

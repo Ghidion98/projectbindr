@@ -7,7 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { UMB_PREVIEW_CONTEXT } from '../preview.context.js';
 import { css, customElement, html, property, repeat } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-const elementName = 'umb-preview-device';
 let UmbPreviewDeviceElement = class UmbPreviewDeviceElement extends UmbLitElement {
     constructor() {
         super(...arguments);
@@ -130,7 +129,7 @@ __decorate([
     property({ attribute: false, type: Object })
 ], UmbPreviewDeviceElement.prototype, "device", void 0);
 UmbPreviewDeviceElement = __decorate([
-    customElement(elementName)
+    customElement('umb-preview-device')
 ], UmbPreviewDeviceElement);
 export { UmbPreviewDeviceElement };
 export { UmbPreviewDeviceElement as element };

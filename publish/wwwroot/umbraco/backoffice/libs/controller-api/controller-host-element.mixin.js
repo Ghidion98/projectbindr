@@ -4,6 +4,7 @@ import { UmbControllerHostMixin } from './controller-host.mixin.js';
  * This enables controllers to be added to the life cycle of this element.
  * @param {object} superClass - superclass to be extended.
  * @mixin
+ * @returns {UmbControllerHostElement} - The class that extends the superClass and implements the UmbControllerHostElement interface.
  */
 export const UmbControllerHostElementMixin = (superClass) => {
     class UmbControllerHostElementClass extends UmbControllerHostMixin(superClass) {

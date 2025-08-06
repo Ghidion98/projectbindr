@@ -8,7 +8,6 @@ import { UMB_PREVIEW_CONTEXT } from '../preview.context.js';
 import { css, customElement, html, nothing, repeat, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { UmbLanguageCollectionRepository } from '@umbraco-cms/backoffice/language';
-const elementName = 'umb-preview-culture';
 let UmbPreviewCultureElement = class UmbPreviewCultureElement extends UmbLitElement {
     constructor() {
         super(...arguments);
@@ -34,7 +33,7 @@ let UmbPreviewCultureElement = class UmbPreviewCultureElement extends UmbLitElem
             return;
         this._culture = culture;
         const previewContext = await this.getContext(UMB_PREVIEW_CONTEXT);
-        previewContext.updateIFrame({ culture: culture.unique });
+        previewContext?.updateIFrame({ culture: culture.unique });
     }
     render() {
         if (this._cultures.length <= 1)
@@ -91,7 +90,7 @@ __decorate([
     state()
 ], UmbPreviewCultureElement.prototype, "_cultures", void 0);
 UmbPreviewCultureElement = __decorate([
-    customElement(elementName)
+    customElement('umb-preview-culture')
 ], UmbPreviewCultureElement);
 export { UmbPreviewCultureElement };
 export { UmbPreviewCultureElement as element };

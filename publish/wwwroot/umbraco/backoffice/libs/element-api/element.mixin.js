@@ -34,13 +34,17 @@ export const UmbElementMixin = (superClass) => {
         consumeContext(alias, callback) {
             return new UmbContextConsumerController(this, alias, callback);
         }
-        async getContext(contextAlias) {
+        async getContext(contextAlias, options) {
             const controller = new UmbContextConsumerController(this, contextAlias);
-            const promise = controller.asPromise().then((result) => {
-                controller.destroy();
-                return result;
-            });
-            return promise;
+            if (options) {
+                if (options.passContextAliasMatches) {
+                    controller.passContextAliasMatches();
+                }
+                if (options.skipHost) {
+                    controller.skipHost();
+                }
+            }
+            return controller.asPromise(options);
         }
     }
     return UmbElementMixinClass;

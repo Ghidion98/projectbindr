@@ -1,1 +1,1 @@
-import './all-packages.js';
+import '@umbraco-cms/backoffice/extension-registry';

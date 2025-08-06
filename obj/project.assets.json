@@ -19464,33 +19464,27 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\matth\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/Users/parinpatel/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\matth\\source\\repos\\ProjectBinder\\ProjectBinder.csproj",
+      "projectUniqueName": "/Users/parinpatel/Desktop/Umbraco16/projectbindr/ProjectBinder.csproj",
       "projectName": "ProjectBinder",
-      "projectPath": "C:\\Users\\matth\\source\\repos\\ProjectBinder\\ProjectBinder.csproj",
-      "packagesPath": "C:\\Users\\matth\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\matth\\source\\repos\\ProjectBinder\\obj\\",
+      "projectPath": "/Users/parinpatel/Desktop/Umbraco16/projectbindr/ProjectBinder.csproj",
+      "packagesPath": "/Users/parinpatel/.nuget/packages/",
+      "outputPath": "/Users/parinpatel/Desktop/Umbraco16/projectbindr/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\matth\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/Users/parinpatel/Desktop/Umbraco16/projectbindr/NuGet.Config",
+        "/Users/parinpatel/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {},
+        "https://nuget.pkg.github.com/umbraco/index.json": {}
       },
       "frameworks": {
         "net9.0": {
@@ -19542,7 +19536,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

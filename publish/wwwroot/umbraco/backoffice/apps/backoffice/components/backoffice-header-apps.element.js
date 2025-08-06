@@ -5,8 +5,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { UMB_MARK_ATTRIBUTE_NAME } from '@umbraco-cms/backoffice/const';
-import { css, html, LitElement, customElement } from '@umbraco-cms/backoffice/external/lit';
-let UmbBackofficeHeaderAppsElement = class UmbBackofficeHeaderAppsElement extends LitElement {
+import { css, customElement, html } from '@umbraco-cms/backoffice/external/lit';
+import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
+let UmbBackofficeHeaderAppsElement = class UmbBackofficeHeaderAppsElement extends UmbLitElement {
     render() {
         return html `
 			<umb-extension-slot

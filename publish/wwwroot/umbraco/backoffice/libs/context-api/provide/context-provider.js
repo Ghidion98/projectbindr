@@ -1,5 +1,5 @@
 import { UMB_CONTEXT_REQUEST_EVENT_TYPE, UMB_DEBUG_CONTEXT_EVENT_TYPE } from '../consume/context-request.event.js';
-import { UmbContextProvideEventImplementation } from './context-provide.event.js';
+import { UmbContextProvideEventImplementation, UmbContextUnprovidedEventImplementation, } from './context-provide.event.js';
 /**
  * @class UmbContextProvider
  */
@@ -29,21 +29,22 @@ export class UmbContextProvider {
         this.#contextAlias = idSplit[0];
         this.#apiAlias = idSplit[1] ?? 'default';
         this.#instance = instance;
-        this.#eventTarget.addEventListener(UMB_CONTEXT_REQUEST_EVENT_TYPE, this.#handleContextRequest);
-        this.#eventTarget.addEventListener(UMB_DEBUG_CONTEXT_EVENT_TYPE, this.#handleDebugContextRequest);
     }
     /**
      * @memberof UmbContextProvider
      */
     hostConnected() {
+        this.#eventTarget.addEventListener(UMB_CONTEXT_REQUEST_EVENT_TYPE, this.#handleContextRequest);
+        this.#eventTarget.addEventListener(UMB_DEBUG_CONTEXT_EVENT_TYPE, this.#handleDebugContextRequest);
         this.#eventTarget.dispatchEvent(new UmbContextProvideEventImplementation(this.#contextAlias));
     }
     /**
      * @memberof UmbContextProvider
      */
     hostDisconnected() {
-        // Out-commented for now, but kept if we like to reintroduce this:
-        //window.dispatchEvent(new UmbContextUnprovidedEventImplementation(this._contextAlias, this.#instance));
+        this.#eventTarget.removeEventListener(UMB_CONTEXT_REQUEST_EVENT_TYPE, this.#handleContextRequest);
+        this.#eventTarget.removeEventListener(UMB_DEBUG_CONTEXT_EVENT_TYPE, this.#handleDebugContextRequest);
+        this.#eventTarget.dispatchEvent(new UmbContextUnprovidedEventImplementation(this.#contextAlias, this.#instance));
     }
     /**
      * @private
@@ -84,8 +85,7 @@ export class UmbContextProvider {
         // Note we are not removing the event listener in the hostDisconnected, therefor we do it here [NL].
         this.#eventTarget?.removeEventListener(UMB_CONTEXT_REQUEST_EVENT_TYPE, this.#handleContextRequest);
         this.#eventTarget?.removeEventListener(UMB_DEBUG_CONTEXT_EVENT_TYPE, this.#handleDebugContextRequest);
-        // We want to call a destroy method on the instance, if it has one.
-        this.#instance?.destroy?.();
+        // We do not want to call a destroy method on the instance, cause maybe it should be re-provided later on. [NL]
         this.#instance = undefined;
         this.#eventTarget = undefined;
     }
