@@ -22,7 +22,7 @@ name: Build and deploy ASP.Net Core app to an Azure Web App
 env:
   AZURE_WEBAPP_NAME: projectbindr    # set this to the name of your Azure Web App
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '5'                 # set this to the .NET Core version to use
+  DOTNET_VERSION: '9'                 # set this to the .NET Core version to use
 
 on:
   push:
@@ -44,6 +44,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl
           sudo apt-get install -y libicu-dev
+          sudo apt-get install -y libssl3
+          sudo apt-get install -y libssl
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
