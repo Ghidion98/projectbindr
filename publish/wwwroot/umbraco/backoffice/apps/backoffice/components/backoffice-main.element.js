@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { UMB_BACKOFFICE_CONTEXT } from '../backoffice.context.js';
 import { css, html, customElement, state, nothing } from '@umbraco-cms/backoffice/external/lit';
-import { UmbSectionContext, UMB_SECTION_CONTEXT, UMB_SECTION_PATH_PATTERN } from '@umbraco-cms/backoffice/section';
+import { UmbSectionContext, UMB_SECTION_PATH_PATTERN } from '@umbraco-cms/backoffice/section';
 import { createExtensionElement } from '@umbraco-cms/backoffice/extension-api';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 let UmbBackofficeMainElement = class UmbBackofficeMainElement extends UmbLitElement {
@@ -14,17 +14,6 @@ let UmbBackofficeMainElement = class UmbBackofficeMainElement extends UmbLitElem
         super();
         this._routes = [];
         this._sections = [];
-        this._onRouteChange = async (event) => {
-            const currentPath = event.target.localActiveViewPath || '';
-            const section = this._sections.find((s) => UMB_SECTION_PATH_PATTERN.generateLocal({ sectionName: s.manifest.meta.pathname }) === currentPath);
-            if (!section)
-                return;
-            await section.asPromise();
-            if (section.manifest) {
-                this._backofficeContext?.setActiveSectionAlias(section.alias);
-                this._provideSectionContext(section.manifest);
-            }
-        };
         this.consumeContext(UMB_BACKOFFICE_CONTEXT, (_instance) => {
             this._backofficeContext = _instance;
             this._observeBackoffice();
@@ -33,7 +22,7 @@ let UmbBackofficeMainElement = class UmbBackofficeMainElement extends UmbLitElem
     async _observeBackoffice() {
         if (this._backofficeContext) {
             this.observe(this._backofficeContext.allowedSections, (sections) => {
-                this._sections = sections;
+                this._sections = sections.filter((x) => x.manifest);
                 this._createRoutes();
             }, 'observeAllowedSections');
         }
@@ -42,28 +31,26 @@ let UmbBackofficeMainElement = class UmbBackofficeMainElement extends UmbLitElem
         if (!this._sections)
             return;
         // TODO: Refactor this for re-use across the app where the routes are re-generated at any time.
-        const newRoutes = this._sections
-            .filter((x) => x.manifest)
-            .map((section) => {
-            const existingRoute = this._routes.find((r) => r.path === UMB_SECTION_PATH_PATTERN.generateLocal({ sectionName: section.manifest.meta.pathname }));
-            if (existingRoute) {
-                return existingRoute;
-            }
-            else {
-                return {
-                    //alias: section.alias,
-                    path: UMB_SECTION_PATH_PATTERN.generateLocal({ sectionName: section.manifest.meta.pathname }),
-                    component: () => createExtensionElement(section.manifest, 'umb-section-default'),
-                    setup: (component) => {
+        const newRoutes = this._sections.map((section) => {
+            return {
+                path: UMB_SECTION_PATH_PATTERN.generateLocal({ sectionName: section.manifest.meta.pathname }),
+                component: () => createExtensionElement(section.manifest, 'umb-section-default'),
+                setup: (component) => {
+                    const manifest = section.manifest;
+                    if (manifest) {
                         component.manifest = section.manifest;
-                    },
-                };
-            }
+                        this._backofficeContext?.setActiveSectionAlias(manifest.alias);
+                        this._provideSectionContext(manifest);
+                    }
+                },
+            };
         });
         if (newRoutes.length > 0) {
             newRoutes.push({
-                ...newRoutes[0],
-                path: ``,
+                path: '',
+                pathMatch: 'full',
+                awaitStability: true,
+                redirectTo: newRoutes[0].path,
             });
             newRoutes.push({
                 path: `**`,
@@ -74,17 +61,12 @@ let UmbBackofficeMainElement = class UmbBackofficeMainElement extends UmbLitElem
     }
     _provideSectionContext(sectionManifest) {
         if (!this._sectionContext) {
-            this._sectionContext = new UmbSectionContext(sectionManifest);
-            this.provideContext(UMB_SECTION_CONTEXT, this._sectionContext);
+            this._sectionContext = new UmbSectionContext(this);
         }
-        else {
-            this._sectionContext.setManifest(sectionManifest);
-        }
+        this._sectionContext.setManifest(sectionManifest);
     }
     render() {
-        return this._routes.length > 0
-            ? html `<umb-router-slot .routes=${this._routes} @change=${this._onRouteChange}></umb-router-slot>`
-            : nothing;
+        return this._routes.length > 0 ? html `<umb-router-slot .routes=${this._routes}></umb-router-slot>` : nothing;
     }
     static { this.styles = [
         css `

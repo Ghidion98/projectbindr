@@ -7,11 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { UMB_PREVIEW_CONTEXT } from '../preview.context.js';
 import { css, customElement, html } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-const elementName = 'umb-preview-exit';
 let UmbPreviewExitElement = class UmbPreviewExitElement extends UmbLitElement {
     async #onClick() {
         const previewContext = await this.getContext(UMB_PREVIEW_CONTEXT);
-        previewContext.exitPreview(0);
+        previewContext?.exitPreview(0);
     }
     render() {
         return html `
@@ -42,7 +41,7 @@ let UmbPreviewExitElement = class UmbPreviewExitElement extends UmbLitElement {
     ]; }
 };
 UmbPreviewExitElement = __decorate([
-    customElement(elementName)
+    customElement('umb-preview-exit')
 ], UmbPreviewExitElement);
 export { UmbPreviewExitElement };
 export { UmbPreviewExitElement as element };

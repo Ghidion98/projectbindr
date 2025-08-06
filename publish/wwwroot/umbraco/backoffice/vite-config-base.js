@@ -7,6 +7,7 @@ export const getDefaultConfig = (args) => {
                 formats: ['es'],
             },
             outDir: args.dist,
+            emptyOutDir: true,
             sourcemap: true,
             rollupOptions: {
                 external: [/^@umbraco/],

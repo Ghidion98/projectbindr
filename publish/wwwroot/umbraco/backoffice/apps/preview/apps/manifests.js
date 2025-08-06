@@ -15,6 +15,13 @@ export const manifests = [
     },
     {
         type: 'previewApp',
+        alias: 'Umb.PreviewApps.Segment',
+        name: 'Preview: Segment Switcher',
+        element: () => import('./preview-segment.element.js'),
+        weight: 290,
+    },
+    {
+        type: 'previewApp',
         alias: 'Umb.PreviewApps.OpenWebsite',
         name: 'Preview: Open Website Button',
         element: () => import('./preview-open-website.element.js'),

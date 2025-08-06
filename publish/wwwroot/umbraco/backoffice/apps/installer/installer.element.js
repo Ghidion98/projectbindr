@@ -4,7 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { UmbInstallerContext, UMB_INSTALLER_CONTEXT } from './installer.context.js';
+import { UmbInstallerContext } from './installer.context.js';
 import { html, customElement, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import './consent/installer-consent.element.js';
@@ -15,10 +15,9 @@ import './shared/layout/installer-layout.element.js';
 import './user/installer-user.element.js';
 let UmbInstallerElement = class UmbInstallerElement extends UmbLitElement {
     constructor() {
-        super();
+        super(...arguments);
         this.step = 1;
-        this._umbInstallerContext = new UmbInstallerContext();
-        this.provideContext(UMB_INSTALLER_CONTEXT, this._umbInstallerContext);
+        this._umbInstallerContext = new UmbInstallerContext(this);
     }
     connectedCallback() {
         super.connectedCallback();

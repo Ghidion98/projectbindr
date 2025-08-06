@@ -7,11 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { UMB_PREVIEW_CONTEXT } from '../preview.context.js';
 import { css, customElement, html } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-const elementName = 'umb-preview-open-website';
 let UmbPreviewOpenWebsiteElement = class UmbPreviewOpenWebsiteElement extends UmbLitElement {
     async #onClick() {
         const previewContext = await this.getContext(UMB_PREVIEW_CONTEXT);
-        previewContext.openWebsite();
+        previewContext?.openWebsite();
     }
     render() {
         return html `
@@ -42,7 +41,7 @@ let UmbPreviewOpenWebsiteElement = class UmbPreviewOpenWebsiteElement extends Um
     ]; }
 };
 UmbPreviewOpenWebsiteElement = __decorate([
-    customElement(elementName)
+    customElement('umb-preview-open-website')
 ], UmbPreviewOpenWebsiteElement);
 export { UmbPreviewOpenWebsiteElement };
 export { UmbPreviewOpenWebsiteElement as element };

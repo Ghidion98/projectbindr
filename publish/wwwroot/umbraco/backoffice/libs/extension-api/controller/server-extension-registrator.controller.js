@@ -1,11 +1,11 @@
 import { isManifestBaseType } from '../type-guards/index.js';
-import { OpenAPI, ManifestService } from '@umbraco-cms/backoffice/external/backend-api';
+import { ManifestService } from '@umbraco-cms/backoffice/external/backend-api';
 import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
-import { tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
+import { tryExecute } from '@umbraco-cms/backoffice/resources';
+import { UMB_SERVER_CONTEXT } from '@umbraco-cms/backoffice/server';
 // TODO: consider if this can be replaced by the new extension controllers
 export class UmbServerExtensionRegistrator extends UmbControllerBase {
     #extensionRegistry;
-    #apiBaseUrl = OpenAPI.BASE;
     constructor(host, extensionRegistry) {
         super(host, UmbServerExtensionRegistrator.name);
         this.#extensionRegistry = extensionRegistry;
@@ -16,7 +16,7 @@ export class UmbServerExtensionRegistrator extends UmbControllerBase {
      * @remark Users must have the BACKOFFICE_ACCESS permission to access this method.
      */
     async registerAllExtensions() {
-        const { data: packages } = await tryExecuteAndNotify(this, ManifestService.getManifestManifest());
+        const { data: packages } = await tryExecute(this, ManifestService.getManifestManifest());
         if (packages) {
             await this.#loadServerPackages(packages);
         }
@@ -27,7 +27,9 @@ export class UmbServerExtensionRegistrator extends UmbControllerBase {
      * @remark Users must have the BACKOFFICE_ACCESS permission to access this method.
      */
     async registerPrivateExtensions() {
-        const { data: packages } = await tryExecuteAndNotify(this, ManifestService.getManifestManifestPrivate());
+        const { data: packages } = await tryExecute(this, ManifestService.getManifestManifestPrivate(), {
+            disableNotifications: true,
+        });
         if (packages) {
             await this.#loadServerPackages(packages);
         }
@@ -38,14 +40,21 @@ export class UmbServerExtensionRegistrator extends UmbControllerBase {
      * @remark Any user can access this method without any permissions.
      */
     async registerPublicExtensions() {
-        const { data: packages } = await tryExecuteAndNotify(this, ManifestService.getManifestManifestPublic());
+        const { data: packages } = await tryExecute(this, ManifestService.getManifestManifestPublic(), {
+            disableNotifications: true,
+        });
         if (packages) {
             await this.#loadServerPackages(packages);
         }
     }
     async #loadServerPackages(packages) {
         const extensions = [];
-        packages.forEach((p) => {
+        const serverContext = await this.getContext(UMB_SERVER_CONTEXT);
+        if (!serverContext) {
+            throw new Error('Server context is not available');
+        }
+        const apiBaseUrl = serverContext?.getServerUrl();
+        packages?.forEach((p) => {
             p.extensions?.forEach((e) => {
                 // Crudely validate that the extension at least follows a basic manifest structure
                 // Idea: Use `Zod` to validate the manifest
@@ -57,15 +66,15 @@ export class UmbServerExtensionRegistrator extends UmbControllerBase {
                     // TODO: add helper to check for relative paths
                     // Add base url if the js path is relative
                     if ('js' in e && typeof e.js === 'string' && !e.js.startsWith('http')) {
-                        e.js = `${this.#apiBaseUrl}${e.js}`;
+                        e.js = `${apiBaseUrl}${e.js}`;
                     }
                     // Add base url if the element path is relative
                     if ('element' in e && typeof e.element === 'string' && !e.element.startsWith('http')) {
-                        e.element = `${this.#apiBaseUrl}${e.element}`;
+                        e.element = `${apiBaseUrl}${e.element}`;
                     }
                     // Add base url if the element path api relative
                     if ('api' in e && typeof e.api === 'string' && !e.api.startsWith('http')) {
-                        e.api = `${this.#apiBaseUrl}${e.api}`;
+                        e.api = `${apiBaseUrl}${e.api}`;
                     }
                     extensions.push(e);
                 }

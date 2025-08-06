@@ -57,8 +57,29 @@ export class UmbArrayState extends UmbDeepState {
         }
     }
     /**
+     * @function getHasOne
+     * @param {U} unique - the unique value to compare with.
+     * @returns {boolean} Wether it existed
+     * @description - Check if a unique value exists in the current data of this Subject.
+     * @example <caption>Example check for key to exist.</caption>
+     * const data = [
+     * 	{ key: 1, value: 'foo'},
+     * 	{ key: 2, value: 'bar'}
+     * ];
+     * const myState = new UmbArrayState(data, (x) => x.key);
+     * myState.hasOne(1);
+     */
+    getHasOne(unique) {
+        if (this.getUniqueMethod) {
+            return this.getValue().some((x) => this.getUniqueMethod(x) === unique);
+        }
+        else {
+            throw new Error('Cannot use hasOne when no unique method provided to check for uniqueness');
+        }
+    }
+    /**
      * @function remove
-     * @param {unknown[]} uniques - The unique values to remove.
+     * @param {U[]} uniques - The unique values to remove.
      * @returns {UmbArrayState<T>} Reference to it self.
      * @description - Remove some new data of this Subject.
      * @example <caption>Example remove entry with id '1' and '2'</caption>
@@ -87,7 +108,7 @@ export class UmbArrayState extends UmbDeepState {
     }
     /**
      * @function removeOne
-     * @param {unknown} unique - The unique value to remove.
+     * @param {U} unique - The unique value to remove.
      * @returns {UmbArrayState<T>} Reference to it self.
      * @description - Remove some new data of this Subject.
      * @example <caption>Example remove entry with id '1'</caption>
@@ -223,7 +244,7 @@ export class UmbArrayState extends UmbDeepState {
     }
     /**
      * @function updateOne
-     * @param {unknown} unique - Unique value to find entry to update.
+     * @param {U} unique - Unique value to find entry to update.
      * @param {Partial<T>} entry - new data to be added in this Subject.
      * @returns {UmbArrayState<T>} Reference to it self.
      * @description - Update a item with some new data, requires the ArrayState to be constructed with a getUnique method.

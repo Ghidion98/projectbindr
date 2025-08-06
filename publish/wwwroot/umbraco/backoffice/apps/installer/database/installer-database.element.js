@@ -6,9 +6,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { UMB_INSTALLER_CONTEXT } from '../installer.context.js';
 import { css, html, nothing, customElement, property, query, state } from '@umbraco-cms/backoffice/external/lit';
-import { ApiError, InstallService } from '@umbraco-cms/backoffice/external/backend-api';
+import { InstallService } from '@umbraco-cms/backoffice/external/backend-api';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { tryExecute } from '@umbraco-cms/backoffice/resources';
+import { tryExecute, UmbApiError } from '@umbraco-cms/backoffice/resources';
 let UmbInstallerDatabaseElement = class UmbInstallerDatabaseElement extends UmbLitElement {
     constructor() {
         super();
@@ -56,9 +56,9 @@ let UmbInstallerDatabaseElement = class UmbInstallerDatabaseElement extends UmbL
                         connectionString,
                         providerName: selectedDatabase.providerName,
                     };
-                    const { error } = await tryExecute(InstallService.postInstallValidateDatabase({ requestBody: databaseDetails }));
+                    const { error } = await tryExecute(this, InstallService.postInstallValidateDatabase({ body: databaseDetails }), { disableNotifications: true });
                     if (error) {
-                        this._validationErrorMessage = `The server could not validate the database connection. Details: ${error instanceof ApiError ? error.body.detail : error.message}`;
+                        this._validationErrorMessage = `The server could not validate the database connection. Details: ${UmbApiError.isUmbApiError(error) ? error.problemDetails.detail : error.message}`;
                         this._installButton.state = 'failed';
                         return;
                     }
@@ -78,14 +78,7 @@ let UmbInstallerDatabaseElement = class UmbInstallerDatabaseElement extends UmbL
                 this._installerContext.appendData({ database });
             }
             this._installerContext.nextStep();
-            const { error: _error } = await tryExecute(InstallService.postInstallSetup({ requestBody: this._installerContext.getData() }));
-            const error = _error;
-            if (error) {
-                this._handleRejected(error);
-            }
-            else {
-                this._handleFulfilled();
-            }
+            this._installerContext.postInstallSetup();
         };
         this._renderServer = () => html `
 		<h2 class="uui-h4">Connection</h2>
@@ -267,15 +260,6 @@ let UmbInstallerDatabaseElement = class UmbInstallerDatabaseElement extends UmbL
     }
     _setDatabase(database) {
         this._installerContext?.appendData({ database });
-    }
-    _handleFulfilled() {
-        // TODO: The post install will probably return a user in the future, so we have to set that context somewhere to let the client know that it is authenticated
-        console.warn('TODO: Set up real authentication');
-        sessionStorage.setItem('is-authenticated', 'true');
-        history.replaceState(null, '', 'section/content');
-    }
-    _handleRejected(e) {
-        this._installerContext?.setInstallStatus(e);
     }
     _onBack() {
         this._installerContext?.prevStep();

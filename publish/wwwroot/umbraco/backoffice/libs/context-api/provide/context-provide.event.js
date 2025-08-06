@@ -9,6 +9,9 @@ export class UmbContextProvideEventImplementation extends Event {
         super(UMB_CONTEXT_PROVIDE_EVENT_TYPE, { bubbles: true, composed: true });
         this.contextAlias = contextAlias;
     }
+    clone() {
+        return new UmbContextProvideEventImplementation(this.contextAlias);
+    }
 }
 export const isUmbContextProvideEventType = (event) => {
     return event.type === UMB_CONTEXT_PROVIDE_EVENT_TYPE;
@@ -19,17 +22,13 @@ export const UMB_CONTEXT_UNPROVIDED_EVENT_TYPE = 'umb:context-unprovided';
  * @augments {Event}
  * @implements {UmbContextUnprovidedEvent}
  */
-/*
-    export class UmbContextUnprovidedEventImplementation extends Event implements UmbContextUnprovidedEvent {
-        public constructor(
-            public readonly contextAlias: string | UmbContextToken,
-            public readonly instance: unknown,
-        ) {
-            super(UMB_CONTEXT_UNPROVIDED_EVENT_TYPE, { bubbles: true, composed: true });
-        }
+export class UmbContextUnprovidedEventImplementation extends Event {
+    constructor(contextAlias, instance) {
+        super(UMB_CONTEXT_UNPROVIDED_EVENT_TYPE, { bubbles: true, composed: true });
+        this.contextAlias = contextAlias;
+        this.instance = instance;
     }
-
-    export const isUmbContextUnprovidedEventType = (event: Event): event is UmbContextUnprovidedEventImplementation => {
-        return event.type === UMB_CONTEXT_UNPROVIDED_EVENT_TYPE;
-    };
-*/
+}
+export const isUmbContextUnprovidedEventType = (event) => {
+    return event.type === UMB_CONTEXT_UNPROVIDED_EVENT_TYPE;
+};

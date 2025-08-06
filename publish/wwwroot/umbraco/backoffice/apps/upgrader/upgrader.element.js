@@ -5,8 +5,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { html, customElement, state } from '@umbraco-cms/backoffice/external/lit';
-import { UpgradeService, ApiError } from '@umbraco-cms/backoffice/external/backend-api';
-import { tryExecute } from '@umbraco-cms/backoffice/resources';
+import { UpgradeService } from '@umbraco-cms/backoffice/external/backend-api';
+import { tryExecute, UmbApiError } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import '../installer/shared/layout/installer-layout.element.js';
 import './upgrader-view.element.js';
@@ -23,10 +23,11 @@ let UmbUpgraderElement = class UmbUpgraderElement extends UmbLitElement {
             e.stopPropagation();
             this.errorMessage = '';
             this.upgrading = true;
-            const { error } = await tryExecute(UpgradeService.postUpgradeAuthorize());
+            const { error } = await tryExecute(this, UpgradeService.postUpgradeAuthorize());
             if (error) {
-                this.errorMessage =
-                    error instanceof ApiError ? error.body.detail : (error.message ?? 'Unknown error, please try again');
+                this.errorMessage = UmbApiError.isUmbApiError(error)
+                    ? (error.problemDetails.detail ?? 'Unknown error, please try again')
+                    : (error.message ?? 'Unknown error, please try again');
             }
             else {
                 history.pushState(null, '', 'section/content');
@@ -47,12 +48,14 @@ let UmbUpgraderElement = class UmbUpgraderElement extends UmbLitElement {
     }
     async _setup() {
         this.fetching = true;
-        const { data, error } = await tryExecute(UpgradeService.getUpgradeSettings());
+        const { data, error } = await tryExecute(this, UpgradeService.getUpgradeSettings(), { disableNotifications: true });
         if (data) {
             this.upgradeSettings = data;
         }
         else if (error) {
-            this.errorMessage = error instanceof ApiError ? error.body.detail : error.message;
+            this.errorMessage = UmbApiError.isUmbApiError(error)
+                ? (error.problemDetails.detail ?? 'Unknown error, please try again')
+                : error.message;
         }
         this.fetching = false;
     }

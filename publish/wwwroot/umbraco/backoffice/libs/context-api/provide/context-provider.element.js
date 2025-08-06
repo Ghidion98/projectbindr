@@ -12,10 +12,12 @@ export class UmbContextProviderElement extends UmbControllerHostElementMixin(HTM
         return ['value', 'key'];
     }
     attributeChangedCallback(name, _oldValue, newValue) {
-        if (name === 'key')
+        if (name === 'key') {
             this.key = newValue;
-        if (name === 'value')
+        }
+        else if (name === 'value') {
             this.value = newValue;
+        }
     }
     constructor() {
         super();

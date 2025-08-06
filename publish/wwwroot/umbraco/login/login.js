@@ -1,20 +1,287 @@
-import { property as u, customElement as p, html as n, ifDefined as ie, css as $, when as j, nothing as z, query as Me, state as l, queryAssignedElements as mt, unsafeHTML as ft, until as gt } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as m } from "@umbraco-cms/backoffice/lit-element";
-import { umbExtensionsRegistry as Z, UmbAppEntryPointExtensionInitializer as wt } from "@umbraco-cms/backoffice/extension-registry";
-import { UmbRepositoryBase as vt } from "@umbraco-cms/backoffice/repository";
-import { UmbLocalizationController as bt } from "@umbraco-cms/backoffice/localization-api";
-import { SecurityService as se, UserService as Pe, ApiError as _t, CancelError as yt } from "@umbraco-cms/backoffice/external/backend-api";
-import { tryExecute as F } from "@umbraco-cms/backoffice/resources";
-import { UmbContextBase as Ct, UmbControllerBase as Pt } from "@umbraco-cms/backoffice/class-api";
-import { UmbContextToken as $t } from "@umbraco-cms/backoffice/context-api";
-import { UmbBundleExtensionInitializer as xt, UmbServerExtensionRegistrator as zt } from "@umbraco-cms/backoffice/extension-api";
-import { UUIIconRegistryEssential as Et } from "@umbraco-cms/backoffice/external/uui";
+import { property as l, customElement as w, ifDefined as fe, html as u, css as k, when as ue, nothing as S, query as He, state as c, queryAssignedElements as St, unsafeHTML as Ot, until as Ut } from "@umbraco-cms/backoffice/external/lit";
+import { UmbLitElement as v } from "@umbraco-cms/backoffice/lit-element";
+import { umbExtensionsRegistry as ae, UmbAppEntryPointExtensionInitializer as Dt } from "@umbraco-cms/backoffice/extension-registry";
+import { UmbRepositoryBase as Tt } from "@umbraco-cms/backoffice/repository";
+import { UmbLocalizationController as qt } from "@umbraco-cms/backoffice/localization-api";
+import { UmbContextBase as Mt, UmbControllerBase as At } from "@umbraco-cms/backoffice/class-api";
+import { UmbContextToken as Rt } from "@umbraco-cms/backoffice/context-api";
+import { UmbBundleExtensionInitializer as Ft, UmbServerExtensionRegistrator as Wt } from "@umbraco-cms/backoffice/extension-api";
+import { UUIIconRegistryEssential as Vt } from "@umbraco-cms/backoffice/external/uui";
+import { UmbServerConnection as Bt, UmbServerContext as Nt } from "@umbraco-cms/backoffice/server";
+import { firstValueFrom as jt } from "@umbraco-cms/backoffice/external/rxjs";
 import "@umbraco-cms/backoffice/localization";
-class It extends vt {
-  #e = new bt(this);
+var Ht = async (t, e) => {
+  let r = typeof e == "function" ? await e(t) : e;
+  if (r) return t.scheme === "bearer" ? `Bearer ${r}` : t.scheme === "basic" ? `Basic ${btoa(r)}` : r;
+}, Gt = { bodySerializer: (t) => JSON.stringify(t, (e, r) => typeof r == "bigint" ? r.toString() : r) }, Jt = (t) => {
+  switch (t) {
+    case "label":
+      return ".";
+    case "matrix":
+      return ";";
+    case "simple":
+      return ",";
+    default:
+      return "&";
+  }
+}, Zt = (t) => {
+  switch (t) {
+    case "form":
+      return ",";
+    case "pipeDelimited":
+      return "|";
+    case "spaceDelimited":
+      return "%20";
+    default:
+      return ",";
+  }
+}, Yt = (t) => {
+  switch (t) {
+    case "label":
+      return ".";
+    case "matrix":
+      return ";";
+    case "simple":
+      return ",";
+    default:
+      return "&";
+  }
+}, Ge = ({ allowReserved: t, explode: e, name: r, style: o, value: a }) => {
+  if (!e) {
+    let n = (t ? a : a.map((d) => encodeURIComponent(d))).join(Zt(o));
+    switch (o) {
+      case "label":
+        return `.${n}`;
+      case "matrix":
+        return `;${r}=${n}`;
+      case "simple":
+        return n;
+      default:
+        return `${r}=${n}`;
+    }
+  }
+  let s = Jt(o), i = a.map((n) => o === "label" || o === "simple" ? t ? n : encodeURIComponent(n) : de({ allowReserved: t, name: r, value: n })).join(s);
+  return o === "label" || o === "matrix" ? s + i : i;
+}, de = ({ allowReserved: t, name: e, value: r }) => {
+  if (r == null) return "";
+  if (typeof r == "object") throw new Error("Deeply-nested arrays/objects aren’t supported. Provide your own `querySerializer()` to handle these.");
+  return `${e}=${t ? r : encodeURIComponent(r)}`;
+}, Je = ({ allowReserved: t, explode: e, name: r, style: o, value: a }) => {
+  if (a instanceof Date) return `${r}=${a.toISOString()}`;
+  if (o !== "deepObject" && !e) {
+    let n = [];
+    Object.entries(a).forEach(([W, _]) => {
+      n = [...n, W, t ? _ : encodeURIComponent(_)];
+    });
+    let d = n.join(",");
+    switch (o) {
+      case "form":
+        return `${r}=${d}`;
+      case "label":
+        return `.${d}`;
+      case "matrix":
+        return `;${r}=${d}`;
+      default:
+        return d;
+    }
+  }
+  let s = Yt(o), i = Object.entries(a).map(([n, d]) => de({ allowReserved: t, name: o === "deepObject" ? `${r}[${n}]` : n, value: d })).join(s);
+  return o === "label" || o === "matrix" ? s + i : i;
+}, Kt = /\{[^{}]+\}/g, Qt = ({ path: t, url: e }) => {
+  let r = e, o = e.match(Kt);
+  if (o) for (let a of o) {
+    let s = !1, i = a.substring(1, a.length - 1), n = "simple";
+    i.endsWith("*") && (s = !0, i = i.substring(0, i.length - 1)), i.startsWith(".") ? (i = i.substring(1), n = "label") : i.startsWith(";") && (i = i.substring(1), n = "matrix");
+    let d = t[i];
+    if (d == null) continue;
+    if (Array.isArray(d)) {
+      r = r.replace(a, Ge({ explode: s, name: i, style: n, value: d }));
+      continue;
+    }
+    if (typeof d == "object") {
+      r = r.replace(a, Je({ explode: s, name: i, style: n, value: d }));
+      continue;
+    }
+    if (n === "matrix") {
+      r = r.replace(a, `;${de({ name: i, value: d })}`);
+      continue;
+    }
+    let W = encodeURIComponent(n === "label" ? `.${d}` : d);
+    r = r.replace(a, W);
+  }
+  return r;
+}, Ze = ({ allowReserved: t, array: e, object: r } = {}) => (o) => {
+  let a = [];
+  if (o && typeof o == "object") for (let s in o) {
+    let i = o[s];
+    if (i != null) if (Array.isArray(i)) {
+      let n = Ge({ allowReserved: t, explode: !0, name: s, style: "form", value: i, ...e });
+      n && a.push(n);
+    } else if (typeof i == "object") {
+      let n = Je({ allowReserved: t, explode: !0, name: s, style: "deepObject", value: i, ...r });
+      n && a.push(n);
+    } else {
+      let n = de({ allowReserved: t, name: s, value: i });
+      n && a.push(n);
+    }
+  }
+  return a.join("&");
+}, Xt = (t) => {
+  if (!t) return "stream";
+  let e = t.split(";")[0]?.trim();
+  if (e) {
+    if (e.startsWith("application/json") || e.endsWith("+json")) return "json";
+    if (e === "multipart/form-data") return "formData";
+    if (["application/", "audio/", "image/", "video/"].some((r) => e.startsWith(r))) return "blob";
+    if (e.startsWith("text/")) return "text";
+  }
+}, er = async ({ security: t, ...e }) => {
+  for (let r of t) {
+    let o = await Ht(r, e.auth);
+    if (!o) continue;
+    let a = r.name ?? "Authorization";
+    switch (r.in) {
+      case "query":
+        e.query || (e.query = {}), e.query[a] = o;
+        break;
+      case "cookie":
+        e.headers.append("Cookie", `${a}=${o}`);
+        break;
+      case "header":
+      default:
+        e.headers.set(a, o);
+        break;
+    }
+    return;
+  }
+}, Ue = (t) => tr({ baseUrl: t.baseUrl, path: t.path, query: t.query, querySerializer: typeof t.querySerializer == "function" ? t.querySerializer : Ze(t.querySerializer), url: t.url }), tr = ({ baseUrl: t, path: e, query: r, querySerializer: o, url: a }) => {
+  let s = a.startsWith("/") ? a : `/${a}`, i = (t ?? "") + s;
+  e && (i = Qt({ path: e, url: i }));
+  let n = r ? o(r) : "";
+  return n.startsWith("?") && (n = n.substring(1)), n && (i += `?${n}`), i;
+}, De = (t, e) => {
+  let r = { ...t, ...e };
+  return r.baseUrl?.endsWith("/") && (r.baseUrl = r.baseUrl.substring(0, r.baseUrl.length - 1)), r.headers = Ye(t.headers, e.headers), r;
+}, Ye = (...t) => {
+  let e = new Headers();
+  for (let r of t) {
+    if (!r || typeof r != "object") continue;
+    let o = r instanceof Headers ? r.entries() : Object.entries(r);
+    for (let [a, s] of o) if (s === null) e.delete(a);
+    else if (Array.isArray(s)) for (let i of s) e.append(a, i);
+    else s !== void 0 && e.set(a, typeof s == "object" ? JSON.stringify(s) : s);
+  }
+  return e;
+}, ge = class {
+  _fns;
+  constructor() {
+    this._fns = [];
+  }
+  clear() {
+    this._fns = [];
+  }
+  getInterceptorIndex(t) {
+    return typeof t == "number" ? this._fns[t] ? t : -1 : this._fns.indexOf(t);
+  }
+  exists(t) {
+    let e = this.getInterceptorIndex(t);
+    return !!this._fns[e];
+  }
+  eject(t) {
+    let e = this.getInterceptorIndex(t);
+    this._fns[e] && (this._fns[e] = null);
+  }
+  update(t, e) {
+    let r = this.getInterceptorIndex(t);
+    return this._fns[r] ? (this._fns[r] = e, t) : !1;
+  }
+  use(t) {
+    return this._fns = [...this._fns, t], this._fns.length - 1;
+  }
+}, rr = () => ({ error: new ge(), request: new ge(), response: new ge() }), ar = Ze({ allowReserved: !1, array: { explode: !0, style: "form" }, object: { explode: !0, style: "deepObject" } }), or = { "Content-Type": "application/json" }, Ke = (t = {}) => ({ ...Gt, headers: or, parseAs: "auto", querySerializer: ar, ...t }), ir = (t = {}) => {
+  let e = De(Ke(), t), r = () => ({ ...e }), o = (i) => (e = De(e, i), r()), a = rr(), s = async (i) => {
+    let n = { ...e, ...i, fetch: i.fetch ?? e.fetch ?? globalThis.fetch, headers: Ye(e.headers, i.headers) };
+    n.security && await er({ ...n, security: n.security }), n.body && n.bodySerializer && (n.body = n.bodySerializer(n.body)), (n.body === void 0 || n.body === "") && n.headers.delete("Content-Type");
+    let d = Ue(n), W = { redirect: "follow", ...n }, _ = new Request(d, W);
+    for (let p of a.request._fns) p && (_ = await p(_, n));
+    let Lt = n.fetch, m = await Lt(_);
+    for (let p of a.response._fns) p && (m = await p(m, _, n));
+    let X = { request: _, response: m };
+    if (m.ok) {
+      if (m.status === 204 || m.headers.get("Content-Length") === "0") return { data: {}, ...X };
+      let p = (n.parseAs === "auto" ? Xt(m.headers.get("Content-Type")) : n.parseAs) ?? "json";
+      if (p === "stream") return { data: m.body, ...X };
+      let te = await m[p]();
+      return p === "json" && (n.responseValidator && await n.responseValidator(te), n.responseTransformer && (te = await n.responseTransformer(te))), { data: te, ...X };
+    }
+    let ee = await m.text();
+    try {
+      ee = JSON.parse(ee);
+    } catch {
+    }
+    let V = ee;
+    for (let p of a.error._fns) p && (V = await p(ee, m, _, n));
+    if (V = V || {}, n.throwOnError) throw V;
+    return { error: V, ...X };
+  };
+  return { buildUrl: Ue, connect: (i) => s({ ...i, method: "CONNECT" }), delete: (i) => s({ ...i, method: "DELETE" }), get: (i) => s({ ...i, method: "GET" }), getConfig: r, head: (i) => s({ ...i, method: "HEAD" }), interceptors: a, options: (i) => s({ ...i, method: "OPTIONS" }), patch: (i) => s({ ...i, method: "PATCH" }), post: (i) => s({ ...i, method: "POST" }), put: (i) => s({ ...i, method: "PUT" }), request: s, setConfig: o, trace: (i) => s({ ...i, method: "TRACE" }) };
+};
+const Q = ir(Ke()), sr = (t) => (t?.client ?? Q).post({
+  security: [
+    {
+      scheme: "bearer",
+      type: "http"
+    }
+  ],
+  url: "/umbraco/management/api/v1/security/forgot-password",
+  ...t,
+  headers: {
+    "Content-Type": "application/json",
+    ...t?.headers
+  }
+}), nr = (t) => (t?.client ?? Q).post({
+  security: [
+    {
+      scheme: "bearer",
+      type: "http"
+    }
+  ],
+  url: "/umbraco/management/api/v1/security/forgot-password/reset",
+  ...t,
+  headers: {
+    "Content-Type": "application/json",
+    ...t?.headers
+  }
+}), ur = (t) => (t?.client ?? Q).post({
+  url: "/umbraco/management/api/v1/security/forgot-password/verify",
+  ...t,
+  headers: {
+    "Content-Type": "application/json",
+    ...t?.headers
+  }
+}), lr = (t) => (t?.client ?? Q).post({
+  url: "/umbraco/management/api/v1/user/invite/create-password",
+  ...t,
+  headers: {
+    "Content-Type": "application/json",
+    ...t?.headers
+  }
+}), dr = (t) => (t?.client ?? Q).post({
+  url: "/umbraco/management/api/v1/user/invite/verify",
+  ...t,
+  headers: {
+    "Content-Type": "application/json",
+    ...t?.headers
+  }
+});
+function cr(t) {
+  return typeof t == "object" && t !== null && "type" in t && "title" in t && "status" in t && "detail" in t;
+}
+class hr extends Tt {
+  #e = new qt(this);
   async login(e) {
     try {
-      const r = new Request("management/api/v1/security/back-office/login", {
+      const r = new Request("/umbraco/management/api/v1/security/back-office/login", {
         method: "POST",
         body: JSON.stringify({
           username: e.username,
@@ -23,23 +290,23 @@ class It extends vt {
         headers: {
           "Content-Type": "application/json"
         }
-      }), a = await fetch(r);
-      if (!a.ok) {
-        if (a.status === 402) {
-          const o = await a.json();
+      }), o = await fetch(r);
+      if (!o.ok) {
+        if (o.status === 402) {
+          const a = await o.json();
           return {
-            status: a.status,
-            twoFactorView: o.twoFactorLoginView ?? "",
-            twoFactorProviders: o.enabledTwoFactorProviderNames ?? []
+            status: o.status,
+            twoFactorView: a.twoFactorLoginView ?? "",
+            twoFactorProviders: a.enabledTwoFactorProviderNames ?? []
           };
         }
         return {
-          status: a.status,
-          error: await this.#r(a)
+          status: o.status,
+          error: await this.#r(o)
         };
       }
       return {
-        status: a.status,
+        status: o.status,
         data: {
           username: e.username
         }
@@ -53,7 +320,7 @@ class It extends vt {
   }
   async validateMfaCode(e, r) {
     try {
-      const a = new Request("management/api/v1/security/back-office/verify-2fa", {
+      const o = new Request("/umbraco/management/api/v1/security/back-office/verify-2fa", {
         method: "POST",
         body: JSON.stringify({
           code: e,
@@ -62,91 +329,87 @@ class It extends vt {
         headers: {
           "Content-Type": "application/json"
         }
-      }), o = await fetch(a);
-      return o.ok ? {} : {
-        error: o.status === 400 ? this.#e.term("auth_mfaInvalidCode") : await this.#r(o)
+      }), a = await fetch(o);
+      return a.ok ? {} : {
+        error: a.status === 400 ? this.#e.term("auth_mfaInvalidCode") : await this.#r(a)
       };
-    } catch (a) {
+    } catch (o) {
       return {
-        error: a instanceof Error ? a.message : this.#e.term("auth_receivedErrorFromServer")
+        error: o instanceof Error ? o.message : this.#e.term("auth_receivedErrorFromServer")
       };
     }
   }
   async resetPassword(e) {
-    const r = await F(se.postSecurityForgotPassword({
-      requestBody: {
+    const { error: r } = await sr({
+      body: {
         email: e
       }
-    }));
-    return r.error ? {
-      error: this.#t(r.error, "Could not reset the password")
+    });
+    return r ? {
+      error: this.#t(r, "Could not reset the password")
     } : {};
   }
   async validatePasswordResetCode(e, r) {
-    const { data: a, error: o } = await F(se.postSecurityForgotPasswordVerify({
-      requestBody: {
+    const { data: o, error: a } = await ur({
+      body: {
         user: {
           id: e
         },
         resetCode: r
       }
-    }));
-    return o || !a ? {
-      error: this.#t(o, "Could not validate the password reset code")
-    } : {
-      passwordConfiguration: a.passwordConfiguration
-      // TODO: Fix this when the API schema has been updated
-    };
+    });
+    return a || !o ? {
+      error: this.#t(a, "Could not validate the password reset code")
+    } : o;
   }
-  async newPassword(e, r, a) {
-    const o = await F(se.postSecurityForgotPasswordReset({
-      requestBody: {
+  async newPassword(e, r, o) {
+    const { error: a } = await nr({
+      body: {
         password: e,
         resetCode: r,
         user: {
-          id: a
+          id: o
         }
       }
-    }));
-    return o.error ? {
-      error: this.#t(o.error, "Could not reset the password")
+    });
+    return a ? {
+      error: this.#t(a, "Could not reset the password")
     } : {};
   }
   async validateInviteCode(e, r) {
-    const { data: a, error: o } = await F(Pe.postUserInviteVerify({
-      requestBody: {
+    const { data: o, error: a } = await dr({
+      body: {
         token: e,
         user: {
           id: r
         }
       }
-    }));
-    return o || !a ? {
-      error: this.#t(o, "Could not validate the invite code")
-    } : {
-      passwordConfiguration: a.passwordConfiguration
-      // TODO: Fix this when the API schema has been updated
-    };
+    });
+    return a || !o ? {
+      error: this.#t(a, "Could not validate the invite code")
+    } : o;
   }
-  async newInvitedUserPassword(e, r, a) {
-    const o = await F(Pe.postUserInviteCreatePassword({
-      requestBody: {
+  async newInvitedUserPassword(e, r, o) {
+    const { error: a } = await lr({
+      body: {
         password: e,
         token: r,
         user: {
-          id: a
+          id: o
         }
       }
-    }));
-    return o.error ? {
-      error: this.#t(o.error, "Could not create a password for the invited user")
+    });
+    return a ? {
+      error: this.#t(a, "Could not create a password for the invited user")
     } : {};
   }
   #t(e, r) {
-    if (e instanceof _t)
-      return typeof e.body == "object" ? e.body.title ?? r : r ?? "An unknown error occurred.";
-    if (!(e instanceof yt))
+    if (cr(e))
+      return e.detail ?? e.title ?? void 0;
+    if (!(e instanceof Error))
       return r ?? "An unknown error occurred.";
+    if (e.name !== "CancelError")
+      return e.message;
   }
   async #r(e) {
     switch (e.status) {
@@ -162,9 +425,9 @@ class It extends vt {
     }
   }
 }
-class kt extends Ct {
+class pr extends Mt {
   constructor() {
-    super(...arguments), this.supportsPersistLogin = !1, this.twoFactorView = "", this.isMfaEnabled = !1, this.mfaProviders = [], this.#e = new It(this), this.#t = "";
+    super(...arguments), this.supportsPersistLogin = !1, this.twoFactorView = "", this.isMfaEnabled = !1, this.mfaProviders = [], this.#e = new hr(this), this.#t = "";
   }
   #e;
   #t;
@@ -183,8 +446,8 @@ class kt extends Ct {
     let r = e.get("ReturnUrl") ?? e.get("returnPath") ?? this.#t;
     if (!r)
       return "";
-    const a = new URL(r, window.location.origin);
-    return a.origin !== window.location.origin ? "" : a.toString();
+    const o = new URL(r, window.location.origin);
+    return o.origin !== window.location.origin ? "" : o.toString();
   }
   login(e) {
     return this.#e.login(e);
@@ -195,11 +458,11 @@ class kt extends Ct {
   validatePasswordResetCode(e, r) {
     return this.#e.validatePasswordResetCode(e, r);
   }
-  newPassword(e, r, a) {
-    return this.#e.newPassword(e, r, a);
+  newPassword(e, r, o) {
+    return this.#e.newPassword(e, r, o);
   }
-  newInvitedUserPassword(e, r, a) {
-    return this.#e.newInvitedUserPassword(e, r, a);
+  newInvitedUserPassword(e, r, o) {
+    return this.#e.newInvitedUserPassword(e, r, o);
   }
   validateInviteCode(e, r) {
     return this.#e.validateInviteCode(e, r);
@@ -208,59 +471,70 @@ class kt extends Ct {
     return this.#e.validateMfaCode(e, r);
   }
 }
-const I = new $t("UmbAuthContext");
-class Lt extends Pt {
-  #e = new Et();
+const U = new Rt("UmbAuthContext");
+class mr extends At {
   constructor(e) {
-    super(e), new xt(e, Z), new wt(e, Z), new zt(e, Z).registerPublicExtensions(), this.#e.attach(e), e.classList.add("uui-text"), e.classList.add("uui-font");
+    super(e), new Ft(e, ae), new Vt().attach(e), e.classList.add("uui-text"), e.classList.add("uui-font");
+  }
+  async register(e) {
+    const r = window.location.origin, o = new Bt(e, r);
+    new Nt(this, {
+      backofficePath: "/umbraco",
+      serverUrl: r,
+      serverConnection: o
+    }), await new Wt(this, ae).registerPublicExtensions().catch((s) => {
+      console.error("Failed to register public extensions for the slim backoffice.", s);
+    });
+    const a = new Dt(e, ae);
+    await jt(a.loaded);
   }
 }
-const St = "#umb-login-form input{width:100%;height:var(--input-height);box-sizing:border-box;display:block;border:1px solid var(--uui-color-border);border-radius:var(--uui-border-radius);background-color:var(--uui-color-surface);padding:var(--uui-size-1, 3px) var(--uui-size-space-4, 9px)}#umb-login-form uui-form-layout-item{margin-top:var(--uui-size-space-4);margin-bottom:var(--uui-size-space-4)}#umb-login-form input:focus-within{border-color:var(--uui-input-border-color-focus, var(--uui-color-border-emphasis, #a1a1a1));outline:calc(2px * var(--uui-show-focus-outline, 1)) solid var(--uui-color-focus)}#umb-login-form input:hover:not(:focus-within){border-color:var(--uui-input-border-color-hover, var(--uui-color-border-standalone, #c2c2c2))}#umb-login-form input::-ms-reveal{display:none}#umb-login-form input span{position:absolute;right:1px;top:50%;transform:translateY(-50%);z-index:100}#umb-login-form input span svg{background-color:#fff;display:block;padding:.2em;width:1.3em;height:1.3em}", Ot = [
+const fr = "#umb-login-form input{width:100%;height:var(--input-height);box-sizing:border-box;display:block;border:1px solid var(--uui-color-border);border-radius:var(--uui-border-radius);background-color:var(--uui-color-surface);padding:var(--uui-size-1, 3px) var(--uui-size-space-4, 9px)}#umb-login-form uui-form-layout-item{margin-top:var(--uui-size-space-4);margin-bottom:var(--uui-size-space-4)}#umb-login-form input:focus-within{border-color:var(--uui-input-border-color-focus, var(--uui-color-border-emphasis, #a1a1a1));outline:calc(2px * var(--uui-show-focus-outline, 1)) solid var(--uui-color-focus)}#umb-login-form input:hover:not(:focus-within){border-color:var(--uui-input-border-color-hover, var(--uui-color-border-standalone, #c2c2c2))}#umb-login-form input::-ms-reveal{display:none}#umb-login-form input span{position:absolute;right:1px;top:50%;transform:translateY(-50%);z-index:100}#umb-login-form input span svg{background-color:#fff;display:block;padding:.2em;width:1.3em;height:1.3em}", gr = [
   {
     name: "Auth Bundle",
     alias: "Umb.Auth.Bundle",
     type: "bundle",
-    js: () => import("./manifests-BS8r2juT.js")
+    js: () => import("./manifests-CTnEFKn2.js")
   }
 ];
-var Ut = Object.defineProperty, Dt = Object.getOwnPropertyDescriptor, qe = (t) => {
+var wr = Object.defineProperty, vr = Object.getOwnPropertyDescriptor, Qe = (t) => {
   throw TypeError(t);
-}, _ = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Dt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Ut(e, r, o), o;
-}, Fe = (t, e, r) => e.has(t) || qe("Cannot " + r), ne = (t, e, r) => (Fe(t, e, "read from private field"), r ? r.call(t) : e.get(t)), $e = (t, e, r) => e.has(t) ? qe("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Mt = (t, e, r) => (Fe(t, e, "access private method"), r), A, le, Te;
-const xe = (t) => {
+}, P = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? vr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && wr(e, r, a), a;
+}, Xe = (t, e, r) => e.has(t) || Qe("Cannot " + r), we = (t, e, r) => (Xe(t, e, "read from private field"), r ? r.call(t) : e.get(t)), Te = (t, e, r) => e.has(t) ? Qe("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), br = (t, e, r) => (Xe(t, e, "access private method"), r), N, be, et;
+const qe = (t) => {
   const e = document.createElement("input");
   return e.type = t.type, e.name = t.name, e.autocomplete = t.autocomplete, e.id = t.id, e.required = !0, e.inputMode = t.inputmode, e.ariaLabel = t.label, e.autofocus = t.autofocus || !1, e;
-}, ze = (t) => {
+}, Me = (t) => {
   const e = document.createElement("label"), r = document.createElement("umb-localize");
   return r.key = t.localizeAlias, r.innerHTML = t.localizeFallback, e.htmlFor = t.forId, e.appendChild(r), e;
-}, Ee = (t, e) => {
+}, Ae = (t, e) => {
   const r = document.createElement("uui-form-layout-item");
   return r.appendChild(t), r.appendChild(e), r;
-}, qt = (t) => {
+}, yr = (t) => {
   const e = document.createElement("style");
-  e.innerHTML = St;
+  e.innerHTML = fr;
   const r = document.createElement("form");
-  return r.id = "umb-login-form", r.name = "login-form", r.spellcheck = !1, t.push(e), t.forEach((a) => r.appendChild(a)), r;
+  return r.id = "umb-login-form", r.name = "login-form", r.spellcheck = !1, t.push(e), t.forEach((o) => r.appendChild(o)), r;
 };
-let g = class extends m {
+let y = class extends v {
   constructor() {
-    super(), $e(this, le), this.disableLocalLogin = !1, this.usernameIsEmail = !1, this.allowPasswordReset = !1, this.allowUserInvite = !1, $e(this, A, new kt(this, I)), this.addEventListener("umb-login-flow", (t) => {
+    super(), Te(this, be), this.disableLocalLogin = !1, this.usernameIsEmail = !1, this.allowPasswordReset = !1, this.allowUserInvite = !1, Te(this, N, new pr(this, U)), this.addEventListener("umb-login-flow", (t) => {
       t instanceof CustomEvent && (this.flow = t.detail.flow || void 0), this.requestUpdate();
-    }), new Lt(this), Z.registerMany(Ot);
+    });
   }
   set returnPath(t) {
-    ne(this, A).returnPath = t;
+    we(this, N).returnPath = t;
   }
   get returnPath() {
-    return ne(this, A).returnPath;
+    return we(this, N).returnPath;
   }
-  firstUpdated() {
-    setTimeout(() => {
+  async firstUpdated() {
+    await new mr(this).register(this), ae.registerMany(gr), setTimeout(() => {
       requestAnimationFrame(() => {
-        Mt(this, le, Te).call(this);
+        br(this, be, et).call(this);
       });
     }, 100);
   }
@@ -268,64 +542,57 @@ let g = class extends m {
     super.disconnectedCallback(), this._usernameLayoutItem?.remove(), this._passwordLayoutItem?.remove(), this._usernameLabel?.remove(), this._usernameInput?.remove(), this._passwordLabel?.remove(), this._passwordInput?.remove();
   }
   render() {
-    return n`
-      <umb-auth-layout
-        background-image=${ie(this.backgroundImage)}
-        logo-image=${ie(this.logoImage)}
-        logo-image-alternative=${ie(this.logoImageAlternative)}>
-        ${this._renderFlowAndStatus()}
-      </umb-auth-layout>
-    `;
+    return u`
+			<umb-auth-layout
+				background-image=${fe(this.backgroundImage)}
+				logo-image=${fe(this.logoImage)}
+				logo-image-alternative=${fe(this.logoImageAlternative)}>
+				${this._renderFlowAndStatus()}
+			</umb-auth-layout>
+		`;
   }
   _renderFlowAndStatus() {
     if (this.disableLocalLogin)
-      return n`
-        <umb-error-layout no-back-link>
-          <umb-localize key="auth_localLoginDisabled">Unfortunately, it is not possible to log in directly. It has been disabled by a login provider.</umb-localize>
-        </umb-error-layout>
-      `;
+      return u`
+				<umb-error-layout no-back-link>
+					<umb-localize key="auth_localLoginDisabled"
+						>Unfortunately, it is not possible to log in directly. It has been disabled by a login
+						provider.</umb-localize
+					>
+				</umb-error-layout>
+			`;
     const t = new URLSearchParams(window.location.search);
     let e = this.flow || t.get("flow")?.toLowerCase();
     const r = t.get("status");
     if (r === "resetCodeExpired")
-      return n`
-        <umb-error-layout
-          message=${this.localize.term("auth_resetCodeExpired")}>
-        </umb-error-layout>`;
+      return u` <umb-error-layout message=${this.localize.term("auth_resetCodeExpired")}> </umb-error-layout>`;
     if (e === "invite-user" && r === "false")
-      return n`
-        <umb-error-layout
-          message=${this.localize.term("auth_userInviteExpiredMessage")}>
-        </umb-error-layout>`;
-    switch (e && e === "mfa" && !ne(this, A).isMfaEnabled && (e = void 0), e) {
+      return u` <umb-error-layout message=${this.localize.term("auth_userInviteExpiredMessage")}>
+			</umb-error-layout>`;
+    switch (e && e === "mfa" && !we(this, N).isMfaEnabled && (e = void 0), e) {
       case "mfa":
-        return n`
-          <umb-mfa-page></umb-mfa-page>`;
+        return u` <umb-mfa-page></umb-mfa-page>`;
       case "reset":
-        return n`
-          <umb-reset-password-page></umb-reset-password-page>`;
+        return u` <umb-reset-password-page></umb-reset-password-page>`;
       case "reset-password":
-        return n`
-          <umb-new-password-page></umb-new-password-page>`;
+        return u` <umb-new-password-page></umb-new-password-page>`;
       case "invite-user":
-        return n`
-          <umb-invite-page></umb-invite-page>`;
+        return u` <umb-invite-page></umb-invite-page>`;
       default:
-        return n`
-          <umb-login-page
-            ?allow-password-reset=${this.allowPasswordReset}
-            ?username-is-email=${this.usernameIsEmail}>
-            <slot></slot>
-            <slot name="subheadline" slot="subheadline"></slot>
-          </umb-login-page>`;
+        return u` <umb-login-page
+					?allow-password-reset=${this.allowPasswordReset}
+					?username-is-email=${this.usernameIsEmail}>
+					<slot></slot>
+					<slot name="subheadline" slot="subheadline"></slot>
+				</umb-login-page>`;
     }
   }
 };
-A = /* @__PURE__ */ new WeakMap();
-le = /* @__PURE__ */ new WeakSet();
-Te = function() {
+N = /* @__PURE__ */ new WeakMap();
+be = /* @__PURE__ */ new WeakSet();
+et = function() {
   const t = this.usernameIsEmail ? this.localize.term("auth_email") : this.localize.term("auth_username"), e = this.localize.term("auth_password");
-  this._usernameInput = xe({
+  this._usernameInput = qe({
     id: "username-input",
     type: "text",
     name: "username",
@@ -333,249 +600,255 @@ Te = function() {
     label: t,
     inputmode: this.usernameIsEmail ? "email" : "",
     autofocus: !0
-  }), this._passwordInput = xe({
+  }), this._passwordInput = qe({
     id: "password-input",
     type: "password",
     name: "password",
     autocomplete: "current-password",
     label: e,
     inputmode: ""
-  }), this._usernameLabel = ze({
+  }), this._usernameLabel = Me({
     forId: "username-input",
     localizeAlias: this.usernameIsEmail ? "auth_email" : "auth_username",
     localizeFallback: this.usernameIsEmail ? "Email" : "Username"
-  }), this._passwordLabel = ze({ forId: "password-input", localizeAlias: "auth_password", localizeFallback: "Password" }), this._usernameLayoutItem = Ee(this._usernameLabel, this._usernameInput), this._passwordLayoutItem = Ee(this._passwordLabel, this._passwordInput), this._form = qt([this._usernameLayoutItem, this._passwordLayoutItem]), this.insertAdjacentElement("beforeend", this._form);
+  }), this._passwordLabel = Me({
+    forId: "password-input",
+    localizeAlias: "auth_password",
+    localizeFallback: "Password"
+  }), this._usernameLayoutItem = Ae(this._usernameLabel, this._usernameInput), this._passwordLayoutItem = Ae(this._passwordLabel, this._passwordInput), this._form = yr([this._usernameLayoutItem, this._passwordLayoutItem]), this.insertAdjacentElement("beforeend", this._form);
 };
-_([
-  u({ type: Boolean, attribute: "disable-local-login" })
-], g.prototype, "disableLocalLogin", 2);
-_([
-  u({ attribute: "background-image" })
-], g.prototype, "backgroundImage", 2);
-_([
-  u({ attribute: "logo-image" })
-], g.prototype, "logoImage", 2);
-_([
-  u({ attribute: "logo-image-alternative" })
-], g.prototype, "logoImageAlternative", 2);
-_([
-  u({ type: Boolean, attribute: "username-is-email" })
-], g.prototype, "usernameIsEmail", 2);
-_([
-  u({ type: Boolean, attribute: "allow-password-reset" })
-], g.prototype, "allowPasswordReset", 2);
-_([
-  u({ type: Boolean, attribute: "allow-user-invite" })
-], g.prototype, "allowUserInvite", 2);
-_([
-  u({ attribute: "return-url" })
-], g.prototype, "returnPath", 1);
-g = _([
-  p("umb-auth")
-], g);
-var Ft = Object.defineProperty, Tt = Object.getOwnPropertyDescriptor, Ae = (t) => {
+P([
+  l({ type: Boolean, attribute: "disable-local-login" })
+], y.prototype, "disableLocalLogin", 2);
+P([
+  l({ attribute: "background-image" })
+], y.prototype, "backgroundImage", 2);
+P([
+  l({ attribute: "logo-image" })
+], y.prototype, "logoImage", 2);
+P([
+  l({ attribute: "logo-image-alternative" })
+], y.prototype, "logoImageAlternative", 2);
+P([
+  l({ type: Boolean, attribute: "username-is-email" })
+], y.prototype, "usernameIsEmail", 2);
+P([
+  l({ type: Boolean, attribute: "allow-password-reset" })
+], y.prototype, "allowPasswordReset", 2);
+P([
+  l({ type: Boolean, attribute: "allow-user-invite" })
+], y.prototype, "allowUserInvite", 2);
+P([
+  l({ attribute: "return-url" })
+], y.prototype, "returnPath", 1);
+y = P([
+  w("umb-auth")
+], y);
+var _r = Object.defineProperty, Cr = Object.getOwnPropertyDescriptor, tt = (t) => {
   throw TypeError(t);
-}, te = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Tt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Ft(e, r, o), o;
-}, At = (t, e, r) => e.has(t) || Ae("Cannot " + r), Rt = (t, e, r) => e.has(t) ? Ae("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Ie = (t, e, r) => (At(t, e, "access private method"), r), Y, Re, We;
-let O = class extends m {
+}, ce = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Cr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && _r(e, r, a), a;
+}, xr = (t, e, r) => e.has(t) || tt("Cannot " + r), $r = (t, e, r) => e.has(t) ? tt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Re = (t, e, r) => (xr(t, e, "access private method"), r), oe, rt, at;
+let M = class extends v {
   constructor() {
-    super(...arguments), Rt(this, Y);
+    super(...arguments), $r(this, oe);
   }
   updated(t) {
     super.updated(t), t.has("backgroundImage") && (this.style.setProperty("--logo-alternative-display", this.backgroundImage ? "none" : "unset"), this.style.setProperty("--image", `url('${this.backgroundImage}') no-repeat center center/cover`));
   }
   render() {
-    return n`
-      <div id=${this.backgroundImage ? "main" : "main-no-image"}>
-        ${Ie(this, Y, Re).call(this)} ${Ie(this, Y, We).call(this)}
-      </div>
-      ${j(
+    return u`
+			<div id=${this.backgroundImage ? "main" : "main-no-image"}>
+				${Re(this, oe, rt).call(this)} ${Re(this, oe, at).call(this)}
+			</div>
+			${ue(
       this.logoImageAlternative,
-      () => n`<img id="logo-on-background" src=${this.logoImageAlternative} alt="logo" aria-hidden="true"/>`
+      (t) => u`<img id="logo-on-background" src=${t} alt="logo" aria-hidden="true" />`
     )}
-    `;
+		`;
   }
 };
-Y = /* @__PURE__ */ new WeakSet();
-Re = function() {
-  return this.backgroundImage ? n`
-      <div id="image-container">
-        <div id="image">
-          <svg
-            id="curve-top"
-            width="1746"
-            height="1374"
-            viewBox="0 0 1746 1374"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 1C61.5 722.5 206.5 1366.5 1745.5 1366.5" stroke="currentColor" stroke-width="15"/>
-          </svg>
-          <svg
-            id="curve-bottom"
-            width="1364"
-            height="552"
-            viewBox="0 0 1364 552"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 8C387 24 1109 11 1357 548" stroke="currentColor" stroke-width="15"/>
-          </svg>
+oe = /* @__PURE__ */ new WeakSet();
+rt = function() {
+  return this.backgroundImage ? u`
+			<div id="image-container">
+				<div id="image">
+					<svg
+						id="curve-top"
+						width="1746"
+						height="1374"
+						viewBox="0 0 1746 1374"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path d="M8 1C61.5 722.5 206.5 1366.5 1745.5 1366.5" stroke="currentColor" stroke-width="15" />
+					</svg>
+					<svg
+						id="curve-bottom"
+						width="1364"
+						height="552"
+						viewBox="0 0 1364 552"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path d="M1 8C387 24 1109 11 1357 548" stroke="currentColor" stroke-width="15" />
+					</svg>
 
-          ${j(
+					${ue(
     this.logoImage,
-    () => n`<img id="logo-on-image" src=${this.logoImage} alt="logo" aria-hidden="true"/>`
+    (t) => u`<img id="logo-on-image" src=${t} alt="logo" aria-hidden="true" />`
   )}
-        </div>
-      </div>
-    ` : z;
+				</div>
+			</div>
+		` : S;
 };
-We = function() {
-  return n`
-      <div id="content-container">
-        <div id="content">
-          <slot></slot>
-        </div>
-      </div>
-    `;
+at = function() {
+  return u`
+			<div id="content-container">
+				<div id="content">
+					<slot></slot>
+				</div>
+			</div>
+		`;
 };
-O.styles = [
-  $`
-      :host {
-        --uui-color-interactive: var(--umb-login-primary-color, #283a97);
-        --uui-button-border-radius: var(--umb-login-button-border-radius, 45px);
-        --uui-color-default: var(--uui-color-interactive);
-        --uui-button-height: 42px;
-        --uui-select-height: 38px;
+M.styles = [
+  k`
+			:host {
+				--uui-color-interactive: var(--umb-login-primary-color, #283a97);
+				--uui-button-border-radius: var(--umb-login-button-border-radius, 45px);
+				--uui-color-default: var(--uui-color-interactive);
+				--uui-button-height: 42px;
+				--uui-select-height: 38px;
 
-        --input-height: 40px;
-        --header-font-size: var(--umb-login-header-font-size, 3rem);
-        --header-secondary-font-size: var(--umb-login-header-secondary-font-size, 2.4rem);
-        --curves-color: var(--umb-login-curves-color, #f5c1bc);
-        --curves-display: var(--umb-login-curves-display, inline);
+				--input-height: 40px;
+				--header-font-size: var(--umb-login-header-font-size, 3rem);
+				--header-secondary-font-size: var(--umb-login-header-secondary-font-size, 2.4rem);
+				--curves-color: var(--umb-login-curves-color, #f5c1bc);
+				--curves-display: var(--umb-login-curves-display, inline);
 
-        display: block;
-        background: var(--umb-login-background, #f4f4f4);
-        color: var(--umb-login-text-color, #000);
-      }
+				display: block;
+				background: var(--umb-login-background, #f4f4f4);
+				color: var(--umb-login-text-color, #000);
+			}
 
-      #main-no-image,
-      #main {
-        max-width: 1920px;
-        display: flex;
-        justify-content: center;
-        height: 100vh;
-        padding: 8px;
-        box-sizing: border-box;
-        margin: 0 auto;
-      }
+			#main-no-image,
+			#main {
+				max-width: 1920px;
+				display: flex;
+				justify-content: center;
+				height: 100vh;
+				padding: 8px;
+				box-sizing: border-box;
+				margin: 0 auto;
+			}
 
-      #image-container {
-        display: var(--umb-login-image-display, none);
-        width: 100%;
-      }
+			#image-container {
+				display: var(--umb-login-image-display, none);
+				width: 100%;
+			}
 
-      #content-container {
-        background: var(--umb-login-content-background, none);
-        display: var(--umb-login-content-display, flex);
-        width: var(--umb-login-content-width, 100%);
-        height: var(--umb-login-content-height, 100%);
-        box-sizing: border-box;
-        overflow: auto;
-        border-radius: var(--umb-login-content-border-radius, 0);
-      }
+			#content-container {
+				background: var(--umb-login-content-background, none);
+				display: var(--umb-login-content-display, flex);
+				width: var(--umb-login-content-width, 100%);
+				height: var(--umb-login-content-height, 100%);
+				box-sizing: border-box;
+				overflow: auto;
+				border-radius: var(--umb-login-content-border-radius, 0);
+			}
 
-      #content {
-        max-width: 360px;
-        margin: auto;
-        width: 100%;
-      }
+			#content {
+				max-width: 360px;
+				margin: auto;
+				width: 100%;
+			}
 
-      #image {
-        background: var(--umb-login-image, var(--image));
-        width: 100%;
-        height: 100%;
-        border-radius: var(--umb-login-image-border-radius, 38px);
-        position: relative;
-        overflow: hidden;
-        color: var(--curves-color);
-      }
+			#image {
+				background: var(--umb-login-image, var(--image));
+				width: 100%;
+				height: 100%;
+				border-radius: var(--umb-login-image-border-radius, 38px);
+				position: relative;
+				overflow: hidden;
+				color: var(--curves-color);
+			}
 
-      #image svg {
-        position: absolute;
-        width: 45%;
-        height: fit-content;
-        display: var(--curves-display);
-      }
+			#image svg {
+				position: absolute;
+				width: 45%;
+				height: fit-content;
+				display: var(--curves-display);
+			}
 
-      #curve-top {
-        top: 0;
-        right: 0;
-      }
+			#curve-top {
+				top: -9%;
+				right: -9%;
+			}
 
-      #curve-bottom {
-        bottom: 0;
-        left: 0;
-      }
+			#curve-bottom {
+				bottom: -0.5%;
+				left: -0.1%;
+			}
 
-      #logo-on-image,
-      #logo-on-background {
-        position: absolute;
-        top: 24px;
-        left: 24px;
-        height: 55px;
-      }
+			#logo-on-image,
+			#logo-on-background {
+				position: absolute;
+				display: var(--umb-logo-display, block);
+				top: var(--umb-logo-top, 24px);
+				left: var(--umb-logo-left, 24px);
+				width: var(--umb-logo-width, auto);
+				height: var(--umb-logo-height, 55px);
+			}
 
-      @media only screen and (min-width: 900px) {
-        :host {
-          --header-font-size: var(--umb-login-header-font-size-large, 4rem);
-        }
+			@media only screen and (min-width: 900px) {
+				:host {
+					--header-font-size: var(--umb-login-header-font-size-large, 4rem);
+				}
 
-        #main {
-          padding: 32px;
-          padding-right: 0;
-          align-items: var(--umb-login-align-items, unset);
-        }
+				#main {
+					padding: 32px;
+					padding-right: 0;
+					align-items: var(--umb-login-align-items, unset);
+				}
 
-        #image-container {
-          display: var(--umb-login-image-display, block);
-        }
+				#image-container {
+					display: var(--umb-login-image-display, block);
+				}
 
-        #content-container {
-          display: var(--umb-login-content-display, flex);
-          padding: 16px;
-        }
+				#content-container {
+					display: var(--umb-login-content-display, flex);
+					padding: 16px;
+				}
 
-        #logo-on-background {
-          display: var(--logo-alternative-display);
-        }
-      }
-    `
+				#logo-on-background {
+					display: var(--logo-alternative-display);
+				}
+			}
+		`
 ];
-te([
-  u({ attribute: "background-image" })
-], O.prototype, "backgroundImage", 2);
-te([
-  u({ attribute: "logo-image" })
-], O.prototype, "logoImage", 2);
-te([
-  u({ attribute: "logo-image-alternative" })
-], O.prototype, "logoImageAlternative", 2);
-O = te([
-  p("umb-auth-layout")
-], O);
-var Wt = Object.defineProperty, Bt = Object.getOwnPropertyDescriptor, fe = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Bt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Wt(e, r, o), o;
+ce([
+  l({ attribute: "background-image" })
+], M.prototype, "backgroundImage", 2);
+ce([
+  l({ attribute: "logo-image" })
+], M.prototype, "logoImage", 2);
+ce([
+  l({ attribute: "logo-image-alternative" })
+], M.prototype, "logoImageAlternative", 2);
+M = ce([
+  w("umb-auth-layout")
+], M);
+var Pr = Object.defineProperty, zr = Object.getOwnPropertyDescriptor, Pe = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? zr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Pr(e, r, a), a;
 };
-let V = class extends m {
+let J = class extends v {
   constructor() {
     super(...arguments), this.header = "", this.message = "";
   }
   render() {
-    return n`
+    return u`
       <header id="header">
         <h1>${this.header}</h1>
         <span>${this.message}</span>
@@ -587,8 +860,8 @@ let V = class extends m {
     `;
   }
 };
-V.styles = [
-  $`
+J.styles = [
+  k`
       :host {
         display: flex;
         flex-direction: column;
@@ -623,37 +896,37 @@ V.styles = [
       }
     `
 ];
-fe([
-  u({ type: String })
-], V.prototype, "header", 2);
-fe([
-  u({ type: String })
-], V.prototype, "message", 2);
-V = fe([
-  p("umb-confirmation-layout")
-], V);
-var Vt = Object.defineProperty, Nt = Object.getOwnPropertyDescriptor, re = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Nt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Vt(e, r, o), o;
+Pe([
+  l({ type: String })
+], J.prototype, "header", 2);
+Pe([
+  l({ type: String })
+], J.prototype, "message", 2);
+J = Pe([
+  w("umb-confirmation-layout")
+], J);
+var Er = Object.defineProperty, Ir = Object.getOwnPropertyDescriptor, he = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Ir(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Er(e, r, a), a;
 };
-let U = class extends m {
+let A = class extends v {
   constructor() {
     super(...arguments), this.header = "", this.message = "", this.noBackLink = !1;
   }
   render() {
-    return n`
+    return u`
       <header id="header">
-        <h1>${this.header?.length ? this.header : n`<umb-localize key="auth_friendlyGreeting">Hi there</umb-localize>`}</h1>
+        <h1>${this.header?.length ? this.header : u`<umb-localize key="auth_friendlyGreeting">Hi there</umb-localize>`}</h1>
         <span>${this.message}</span>
       </header>
       <slot></slot>
-      ${this.noBackLink ? "" : n`<umb-back-to-login-button></umb-back-to-login-button>`}
+      ${this.noBackLink ? "" : u`<umb-back-to-login-button></umb-back-to-login-button>`}
     `;
   }
 };
-U.styles = [
-  $`
+A.styles = [
+  k`
       :host {
         display: flex;
         flex-direction: column;
@@ -688,42 +961,41 @@ U.styles = [
       }
     `
 ];
-re([
-  u({ type: String })
-], U.prototype, "header", 2);
-re([
-  u({ type: String })
-], U.prototype, "message", 2);
-re([
-  u({ type: Boolean, attribute: "no-back-link" })
-], U.prototype, "noBackLink", 2);
-U = re([
-  p("umb-error-layout")
-], U);
-var Ht = Object.defineProperty, Gt = Object.getOwnPropertyDescriptor, Be = (t) => {
+he([
+  l({ type: String })
+], A.prototype, "header", 2);
+he([
+  l({ type: String })
+], A.prototype, "message", 2);
+he([
+  l({ type: Boolean, attribute: "no-back-link" })
+], A.prototype, "noBackLink", 2);
+A = he([
+  w("umb-error-layout")
+], A);
+var kr = Object.defineProperty, Lr = Object.getOwnPropertyDescriptor, ot = (t) => {
   throw TypeError(t);
-}, y = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Gt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Ht(e, r, o), o;
-}, Jt = (t, e, r) => e.has(t) || Be("Cannot " + r), Zt = (t, e, r) => e.has(t) ? Be("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), ke = (t, e, r) => (Jt(t, e, "access private method"), r), K, Ve, Ne;
-let c = class extends m {
+}, z = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Lr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && kr(e, r, a), a;
+}, Sr = (t, e, r) => e.has(t) || ot("Cannot " + r), Or = (t, e, r) => e.has(t) ? ot("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Fe = (t, e, r) => (Sr(t, e, "access private method"), r), ie, it, st;
+let g = class extends v {
   constructor() {
-    super(), Zt(this, K), this.state = void 0, this.error = "", this.userId = "", this.isInvite = !1, this._passwordPattern = "", this.consumeContext(I, (t) => {
-      this._passwordConfiguration = t.passwordConfiguration;
+    super(), Or(this, ie), this.state = void 0, this.error = "", this.userId = "", this.isInvite = !1, this._passwordPattern = "", this.consumeContext(U, (t) => {
       let e = "";
-      this._passwordConfiguration?.requireDigit && (e += "(?=.*\\d)"), this._passwordConfiguration?.requireLowercase && (e += "(?=.*[a-z])"), this._passwordConfiguration?.requireUppercase && (e += "(?=.*[A-Z])"), this._passwordConfiguration?.requireNonLetterOrDigit && (e += "(?=.*\\W)"), e += `.{${this._passwordConfiguration?.minimumPasswordLength ?? 10},}`, this._passwordPattern = e;
+      this._passwordConfiguration = t?.passwordConfiguration, this._passwordConfiguration?.requireDigit && (e += "(?=.*\\d)"), this._passwordConfiguration?.requireLowercase && (e += "(?=.*[a-z])"), this._passwordConfiguration?.requireUppercase && (e += "(?=.*[A-Z])"), this._passwordConfiguration?.requireNonLetterOrDigit && (e += "(?=.*\\W)"), e += `.{${this._passwordConfiguration?.minimumPasswordLength ?? 10},}`, this._passwordPattern = e;
     });
   }
   renderHeader() {
-    return this.isInvite ? n`
+    return this.isInvite ? u`
         <h1>Hi!</h1>
         <span>
           <umb-localize key="auth_userInviteWelcomeMessage">
             Welcome to Umbraco! Just need to get your password setup and then you're good to go
           </umb-localize>
         </span>
-      ` : n`
+      ` : u`
         <h1>
           <umb-localize key="auth_newPassword">New password</umb-localize>
         </h1>
@@ -733,9 +1005,9 @@ let c = class extends m {
       `;
   }
   render() {
-    return n`
+    return u`
       <uui-form>
-        <form id="LoginForm" name="login" @submit=${ke(this, K, Ve)}>
+        <form id="LoginForm" name="login" @submit=${Fe(this, ie, it)}>
           <header id="header">${this.renderHeader()}</header>
           <uui-form-layout-item>
             <uui-label id="passwordLabel" for="password" slot="label" required>
@@ -772,7 +1044,7 @@ let c = class extends m {
               required-message=${this.localize.term("auth_required")}></uui-input-password>
           </uui-form-layout-item>
 
-          ${ke(this, K, Ne).call(this)}
+          ${Fe(this, ie, st).call(this)}
 
           <uui-button
             type="submit"
@@ -787,14 +1059,14 @@ let c = class extends m {
     `;
   }
 };
-K = /* @__PURE__ */ new WeakSet();
-Ve = function(t) {
+ie = /* @__PURE__ */ new WeakSet();
+it = function(t) {
   if (t.preventDefault(), !this._passwordConfiguration) return;
   const e = t.target;
   if (this.passwordElement.setCustomValidity(""), this.confirmPasswordElement.setCustomValidity(""), !e || !e.checkValidity()) return;
-  const r = new FormData(e), a = r.get("password"), o = r.get("confirmPassword");
+  const r = new FormData(e), o = r.get("password"), a = r.get("confirmPassword");
   let s = !1;
-  if (this._passwordConfiguration.minimumPasswordLength > 0 && a.length < this._passwordConfiguration.minimumPasswordLength && (s = !0), this._passwordConfiguration.requireNonLetterOrDigit && (/\W/.test(a) || (s = !0)), this._passwordConfiguration.requireDigit && (/\d/.test(a) || (s = !0)), this._passwordConfiguration.requireLowercase && (/[a-z]/.test(a) || (s = !0)), this._passwordConfiguration.requireUppercase && (/[A-Z]/.test(a) || (s = !0)), s) {
+  if (this._passwordConfiguration.minimumPasswordLength > 0 && o.length < this._passwordConfiguration.minimumPasswordLength && (s = !0), this._passwordConfiguration.requireNonLetterOrDigit && (/\W/.test(o) || (s = !0)), this._passwordConfiguration.requireDigit && (/\d/.test(o) || (s = !0)), this._passwordConfiguration.requireLowercase && (/[a-z]/.test(o) || (s = !0)), this._passwordConfiguration.requireUppercase && (/[A-Z]/.test(o) || (s = !0)), s) {
     const i = this.localize.term(
       "auth_errorInPasswordFormat",
       this._passwordConfiguration.minimumPasswordLength,
@@ -803,20 +1075,20 @@ Ve = function(t) {
     this.passwordElement.setCustomValidity(i);
     return;
   }
-  if (a !== o) {
+  if (o !== a) {
     const i = this.localize.term(
       "auth_passwordMismatch"
     ) ?? "The confirmed password doesn't match the new password!";
     this.confirmPasswordElement.setCustomValidity(i);
     return;
   }
-  this.dispatchEvent(new CustomEvent("submit", { detail: { password: a } }));
+  this.dispatchEvent(new CustomEvent("submit", { detail: { password: o } }));
 };
-Ne = function() {
-  return !this.error || this.state !== "failed" ? z : n`<span class="text-danger">${this.error}</span>`;
+st = function() {
+  return !this.error || this.state !== "failed" ? S : u`<span class="text-danger">${this.error}</span>`;
 };
-c.styles = [
-  $`
+g.styles = [
+  k`
       #header {
         text-align: center;
         display: flex;
@@ -865,158 +1137,158 @@ c.styles = [
       }
     `
 ];
-y([
-  Me("#password")
-], c.prototype, "passwordElement", 2);
-y([
-  Me("#confirmPassword")
-], c.prototype, "confirmPasswordElement", 2);
-y([
-  u()
-], c.prototype, "state", 2);
-y([
-  u()
-], c.prototype, "error", 2);
-y([
-  u()
-], c.prototype, "userId", 2);
-y([
-  u({ type: Boolean, attribute: "is-invite" })
-], c.prototype, "isInvite", 2);
-y([
+z([
+  He("#password")
+], g.prototype, "passwordElement", 2);
+z([
+  He("#confirmPassword")
+], g.prototype, "confirmPasswordElement", 2);
+z([
   l()
-], c.prototype, "_passwordConfiguration", 2);
-y([
+], g.prototype, "state", 2);
+z([
   l()
-], c.prototype, "_passwordPattern", 2);
-c = y([
-  p("umb-new-password-layout")
-], c);
-var Yt = Object.defineProperty, Kt = Object.getOwnPropertyDescriptor, He = (t) => {
+], g.prototype, "error", 2);
+z([
+  l()
+], g.prototype, "userId", 2);
+z([
+  l({ type: Boolean, attribute: "is-invite" })
+], g.prototype, "isInvite", 2);
+z([
+  c()
+], g.prototype, "_passwordConfiguration", 2);
+z([
+  c()
+], g.prototype, "_passwordPattern", 2);
+g = z([
+  w("umb-new-password-layout")
+], g);
+var Ur = Object.defineProperty, Dr = Object.getOwnPropertyDescriptor, nt = (t) => {
   throw TypeError(t);
-}, ae = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Kt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Yt(e, r, o), o;
-}, ge = (t, e, r) => e.has(t) || He("Cannot " + r), h = (t, e, r) => (ge(t, e, "read from private field"), r ? r.call(t) : e.get(t)), J = (t, e, r) => e.has(t) ? He("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), de = (t, e, r, a) => (ge(t, e, "write to private field"), e.set(t, r), r), Le = (t, e, r) => (ge(t, e, "access private method"), r), N, D, v, X, Ge, Je;
-let H = class extends m {
+}, pe = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Dr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Ur(e, r, a), a;
+}, ze = (t, e, r) => e.has(t) || nt("Cannot " + r), f = (t, e, r) => (ze(t, e, "read from private field"), r ? r.call(t) : e.get(t)), re = (t, e, r) => e.has(t) ? nt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), ye = (t, e, r, o) => (ze(t, e, "write to private field"), e.set(t, r), r), We = (t, e, r) => (ze(t, e, "access private method"), r), Z, R, x, se, ut, lt;
+let Y = class extends v {
   constructor() {
-    super(), J(this, X), J(this, N, ""), J(this, D, ""), this.state = void 0, this.error = "", this.loading = !0, J(this, v), this.consumeContext(I, (t) => {
-      de(this, v, t), Le(this, X, Ge).call(this);
+    super(), re(this, se), re(this, Z, ""), re(this, R, ""), this.state = void 0, this.error = "", this.loading = !0, re(this, x), this.consumeContext(U, (t) => {
+      ye(this, x, t), We(this, se, ut).call(this);
     });
   }
   render() {
-    return this.loading ? n`<uui-loader-bar></uui-loader-bar>` : this.error ? n`
+    return this.loading ? u`<uui-loader-bar></uui-loader-bar>` : this.error ? u`
           <umb-error-layout
             header=${this.localize.term("auth_error")}
             message=${this.error ?? this.localize.term("auth_defaultError")}>
-          </umb-error-layout>` : n`
+          </umb-error-layout>` : u`
         <umb-new-password-layout
-          @submit=${Le(this, X, Je)}
+          @submit=${We(this, se, lt)}
           is-invite
-          .userId=${h(this, D)}
+          .userId=${f(this, R)}
           .state=${this.state}
           .error=${this.error}></umb-new-password-layout>`;
   }
 };
-N = /* @__PURE__ */ new WeakMap();
-D = /* @__PURE__ */ new WeakMap();
-v = /* @__PURE__ */ new WeakMap();
-X = /* @__PURE__ */ new WeakSet();
-Ge = async function() {
+Z = /* @__PURE__ */ new WeakMap();
+R = /* @__PURE__ */ new WeakMap();
+x = /* @__PURE__ */ new WeakMap();
+se = /* @__PURE__ */ new WeakSet();
+ut = async function() {
   const t = new URLSearchParams(window.location.search), e = t.get("inviteCode"), r = t.get("userId");
   if (!e || !r) {
     this.error = "The invite has expired or is invalid", this.loading = !1;
     return;
   }
-  if (!h(this, v)) return;
-  de(this, N, e), de(this, D, r);
-  const a = await h(this, v).validateInviteCode(h(this, N), h(this, D));
-  if (a.error) {
-    this.error = a.error, this.loading = !1;
+  if (!f(this, x)) return;
+  ye(this, Z, e), ye(this, R, r);
+  const o = await f(this, x).validateInviteCode(f(this, Z), f(this, R));
+  if (o.error) {
+    this.error = o.error, this.loading = !1;
     return;
   }
-  if (!a.passwordConfiguration) {
+  if (!o.passwordConfiguration) {
     this.error = "There is no password configuration for the invite code. Please contact the administrator.", this.loading = !1;
     return;
   }
-  h(this, v).passwordConfiguration = a.passwordConfiguration, this.loading = !1;
+  f(this, x).passwordConfiguration = o.passwordConfiguration, this.loading = !1;
 };
-Je = async function(t) {
+lt = async function(t) {
   t.preventDefault();
   const e = t.detail.password;
-  if (!e || !h(this, v)) return;
+  if (!e || !f(this, x)) return;
   this.state = "waiting";
-  const r = await h(this, v).newInvitedUserPassword(e, h(this, N), h(this, D));
+  const r = await f(this, x).newInvitedUserPassword(e, f(this, Z), f(this, R));
   if (r.error) {
     this.error = r.error, this.state = "failed";
     return;
   }
-  this.state = "success", window.location.href = h(this, v).returnPath;
+  this.state = "success", window.location.href = f(this, x).returnPath;
 };
-ae([
-  l()
-], H.prototype, "state", 2);
-ae([
-  l()
-], H.prototype, "error", 2);
-ae([
-  l()
-], H.prototype, "loading", 2);
-H = ae([
-  p("umb-invite-page")
-], H);
-var Xt = Object.defineProperty, Qt = Object.getOwnPropertyDescriptor, Ze = (t) => {
+pe([
+  c()
+], Y.prototype, "state", 2);
+pe([
+  c()
+], Y.prototype, "error", 2);
+pe([
+  c()
+], Y.prototype, "loading", 2);
+Y = pe([
+  w("umb-invite-page")
+], Y);
+var Tr = Object.defineProperty, qr = Object.getOwnPropertyDescriptor, dt = (t) => {
   throw TypeError(t);
-}, k = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? Qt(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && Xt(e, r, o), o;
-}, we = (t, e, r) => e.has(t) || Ze("Cannot " + r), d = (t, e, r) => (we(t, e, "read from private field"), r ? r.call(t) : e.get(t)), T = (t, e, r) => e.has(t) ? Ze("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Ye = (t, e, r, a) => (we(t, e, "write to private field"), e.set(t, r), r), ue = (t, e, r) => (we(t, e, "access private method"), r), x, w, S, Ke, ve, Xe, ee, Qe, je;
-let b = class extends m {
+}, D = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? qr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Tr(e, r, a), a;
+}, Ee = (t, e, r) => e.has(t) || dt("Cannot " + r), h = (t, e, r) => (Ee(t, e, "read from private field"), r ? r.call(t) : e.get(t)), B = (t, e, r) => e.has(t) ? dt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), ct = (t, e, r, o) => (Ee(t, e, "write to private field"), e.set(t, r), r), ve = (t, e, r) => (Ee(t, e, "access private method"), r), L, C, q, ht, Ie, pt, le, mt, ft;
+let $ = class extends v {
   constructor() {
-    super(), T(this, S), this.usernameIsEmail = !1, this.allowPasswordReset = !1, this._loginError = "", this.supportPersistLogin = !1, T(this, x), T(this, w), T(this, ve, async (t) => {
-      if (t.preventDefault(), !d(this, w)) return;
+    super(), B(this, q), this.usernameIsEmail = !1, this.allowPasswordReset = !1, this._loginError = "", this.supportPersistLogin = !1, B(this, L), B(this, C), B(this, Ie, async (t) => {
+      if (t.preventDefault(), !h(this, C)) return;
       const e = t.target;
       if (!e) return;
-      const r = new FormData(e), a = r.get("username"), o = r.get("password"), s = r.has("persist");
-      if (!a || !o) {
+      const r = new FormData(e), o = r.get("username"), a = r.get("password"), s = r.has("persist");
+      if (!o || !a) {
         this._loginError = this.localize.term("auth_userFailedLogin"), this._loginState = "failed";
         return;
       }
       this._loginState = "waiting";
-      const i = await d(this, w).login({
-        username: a,
-        password: o,
+      const i = await h(this, C).login({
+        username: o,
+        password: a,
         persist: s
       });
       if (this._loginError = i.error || "", this._loginState = i.error ? "failed" : "success", i.status === 402) {
-        d(this, w).isMfaEnabled = !0, i.twoFactorView && (d(this, w).twoFactorView = i.twoFactorView), i.twoFactorProviders && (d(this, w).mfaProviders = i.twoFactorProviders), this.dispatchEvent(new CustomEvent("umb-login-flow", { composed: !0, detail: { flow: "mfa" } }));
+        h(this, C).isMfaEnabled = !0, i.twoFactorView && (h(this, C).twoFactorView = i.twoFactorView), i.twoFactorProviders && (h(this, C).mfaProviders = i.twoFactorProviders), this.dispatchEvent(new CustomEvent("umb-login-flow", { composed: !0, detail: { flow: "mfa" } }));
         return;
       }
       if (i.error)
         return;
-      const q = d(this, w).returnPath;
-      q && (location.href = q);
-    }), T(this, ee, () => {
-      d(this, x)?.requestSubmit();
-    }), this.consumeContext(I, (t) => {
-      Ye(this, w, t), this.supportPersistLogin = t.supportsPersistLogin;
+      const n = h(this, C).returnPath;
+      n && (location.href = n);
+    }), B(this, le, () => {
+      h(this, L)?.requestSubmit();
+    }), this.consumeContext(U, (t) => {
+      ct(this, C, t), this.supportPersistLogin = t?.supportsPersistLogin ?? !1;
     });
   }
   render() {
-    return n`
+    return u`
       <header id="header">
         <h1 id="greeting">
-          <umb-localize .key=${d(this, S, Xe)}>Welcome</umb-localize>
+          <umb-localize .key=${h(this, q, pt)}></umb-localize>
         </h1>
         <slot name="subheadline"></slot>
       </header>
-      <slot @slotchange=${ue(this, S, Ke)}></slot>
+      <slot @slotchange=${ve(this, q, ht)}></slot>
       <div id="secondary-actions">
-        ${j(
+        ${ue(
       this.supportPersistLogin,
-      () => n`
+      () => u`
             <uui-form-layout-item>
               <uui-checkbox
                 name="persist"
@@ -1025,10 +1297,10 @@ let b = class extends m {
               </uui-checkbox>
             </uui-form-layout-item>`
     )}
-        ${j(
+        ${ue(
       this.allowPasswordReset,
-      () => n`
-              <button type="button" id="forgot-password" @click=${ue(this, S, je)}>
+      () => u`
+              <button type="button" id="forgot-password" @click=${ve(this, q, ft)}>
                 <umb-localize key="auth_forgottenPassword">Forgotten password?</umb-localize>
               </button>`
     )}
@@ -1037,25 +1309,25 @@ let b = class extends m {
         type="submit"
         id="umb-login-button"
         look="primary"
-        @click=${d(this, ee)}
+        @click=${h(this, le)}
         .label=${this.localize.term("auth_login")}
         color="default"
         .state=${this._loginState}></uui-button>
 
-      ${ue(this, S, Qe).call(this)}
+      ${ve(this, q, mt).call(this)}
     `;
   }
 };
-x = /* @__PURE__ */ new WeakMap();
-w = /* @__PURE__ */ new WeakMap();
-S = /* @__PURE__ */ new WeakSet();
-Ke = async function() {
-  Ye(this, x, this.slottedElements?.find((t) => t.id === "umb-login-form")), d(this, x) && (d(this, x).addEventListener("keypress", (t) => {
-    t.key === "Enter" && d(this, ee).call(this);
-  }), d(this, x).onsubmit = d(this, ve));
+L = /* @__PURE__ */ new WeakMap();
+C = /* @__PURE__ */ new WeakMap();
+q = /* @__PURE__ */ new WeakSet();
+ht = async function() {
+  ct(this, L, this.slottedElements?.find((t) => t.id === "umb-login-form")), h(this, L) && (h(this, L).addEventListener("keypress", (t) => {
+    t.key === "Enter" && h(this, le).call(this);
+  }), h(this, L).onsubmit = h(this, Ie));
 };
-ve = /* @__PURE__ */ new WeakMap();
-Xe = function() {
+Ie = /* @__PURE__ */ new WeakMap();
+pt = function() {
   return [
     "auth_greeting0",
     "auth_greeting1",
@@ -1066,15 +1338,15 @@ Xe = function() {
     "auth_greeting6"
   ][(/* @__PURE__ */ new Date()).getDay()];
 };
-ee = /* @__PURE__ */ new WeakMap();
-Qe = function() {
-  return !this._loginError || this._loginState !== "failed" ? z : n`<span class="text-error text-danger">${this._loginError}</span>`;
+le = /* @__PURE__ */ new WeakMap();
+mt = function() {
+  return !this._loginError || this._loginState !== "failed" ? S : u`<span class="text-error text-danger">${this._loginError}</span>`;
 };
-je = function() {
+ft = function() {
   this.dispatchEvent(new CustomEvent("umb-login-flow", { composed: !0, detail: { flow: "reset" } }));
 };
-b.styles = [
-  $`
+$.styles = [
+  k`
       :host {
         display: flex;
         flex-direction: column;
@@ -1142,28 +1414,28 @@ b.styles = [
       }
     `
 ];
-k([
-  u({ type: Boolean, attribute: "username-is-email" })
-], b.prototype, "usernameIsEmail", 2);
-k([
-  mt({ flatten: !0 })
-], b.prototype, "slottedElements", 2);
-k([
-  u({ type: Boolean, attribute: "allow-password-reset" })
-], b.prototype, "allowPasswordReset", 2);
-k([
-  l()
-], b.prototype, "_loginState", 2);
-k([
-  l()
-], b.prototype, "_loginError", 2);
-k([
-  l()
-], b.prototype, "supportPersistLogin", 2);
-b = k([
-  p("umb-login-page")
-], b);
-async function jt(t) {
+D([
+  l({ type: Boolean, attribute: "username-is-email" })
+], $.prototype, "usernameIsEmail", 2);
+D([
+  St({ flatten: !0 })
+], $.prototype, "slottedElements", 2);
+D([
+  l({ type: Boolean, attribute: "allow-password-reset" })
+], $.prototype, "allowPasswordReset", 2);
+D([
+  c()
+], $.prototype, "_loginState", 2);
+D([
+  c()
+], $.prototype, "_loginError", 2);
+D([
+  c()
+], $.prototype, "supportPersistLogin", 2);
+$ = D([
+  w("umb-login-page")
+], $);
+async function Mr(t) {
   if (t.endsWith(".html"))
     return fetch(t).then((r) => r.text());
   const e = await import(
@@ -1173,26 +1445,26 @@ async function jt(t) {
   if (!e.default) throw new Error("No default export found");
   return new e.default();
 }
-function er(t) {
-  return typeof t == "string" ? n`${ft(t)}` : t;
+function Ar(t) {
+  return typeof t == "string" ? u`${Ot(t)}` : t;
 }
-var tr = Object.defineProperty, rr = Object.getOwnPropertyDescriptor, et = (t) => {
+var Rr = Object.defineProperty, Fr = Object.getOwnPropertyDescriptor, gt = (t) => {
   throw TypeError(t);
-}, oe = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? rr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && tr(e, r, o), o;
-}, be = (t, e, r) => e.has(t) || et("Cannot " + r), E = (t, e, r) => (be(t, e, "read from private field"), r ? r.call(t) : e.get(t)), Se = (t, e, r) => e.has(t) ? et("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), ar = (t, e, r, a) => (be(t, e, "write to private field"), e.set(t, r), r), Oe = (t, e, r) => (be(t, e, "access private method"), r), f, Q, tt, rt;
-let M = class extends m {
+}, me = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Fr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Rr(e, r, a), a;
+}, ke = (t, e, r) => e.has(t) || gt("Cannot " + r), O = (t, e, r) => (ke(t, e, "read from private field"), r ? r.call(t) : e.get(t)), Ve = (t, e, r) => e.has(t) ? gt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Wr = (t, e, r, o) => (ke(t, e, "write to private field"), e.set(t, r), r), Be = (t, e, r) => (ke(t, e, "access private method"), r), b, ne, wt, vt;
+let F = class extends v {
   constructor() {
-    super(), Se(this, Q), this.providers = [], this.error = null, Se(this, f), this.consumeContext(I, (t) => {
-      ar(this, f, t), Oe(this, Q, tt).call(this);
+    super(), Ve(this, ne), this.providers = [], this.error = null, Ve(this, b), this.consumeContext(U, (t) => {
+      Wr(this, b, t), Be(this, ne, wt).call(this);
     });
   }
   renderDefaultView() {
-    return n`
+    return u`
       <uui-form>
-        <form id="LoginForm" @submit=${Oe(this, Q, rt)} novalidate>
+        <form id="LoginForm" @submit=${Be(this, ne, vt)} novalidate>
           <header id="header">
             <h1>
               <umb-localize key="auth_mfaTitle">One last step</umb-localize>
@@ -1206,14 +1478,14 @@ let M = class extends m {
           </header>
 
           <!-- if there's only one provider active, it will skip this step! -->
-          ${this.providers.length > 1 ? n`
+          ${this.providers.length > 1 ? u`
               <uui-form-layout-item>
                 <uui-label id="providerLabel" for="provider" slot="label" required>
                   <umb-localize key="auth_mfaMultipleText">Please choose a 2-factor provider</umb-localize>
                 </uui-label>
                 <uui-select label=${this.localize.term("auth_mfaMultipleText")} id="provider" name="provider" .options=${this.providers} aria-required="true" required></uui-select>
               </uui-form-layout-item>
-            ` : z}
+            ` : S}
 
           <uui-form-layout-item>
             <uui-label id="mfacodeLabel" for="mfacode" slot="label" required>
@@ -1236,7 +1508,7 @@ let M = class extends m {
             </uui-input>
           </uui-form-layout-item>
 
-          ${this.error ? n` <span class="text-danger">${this.error}</span> ` : z}
+          ${this.error ? u` <span class="text-danger">${this.error}</span> ` : S}
 
           <uui-button
             .state=${this.buttonState}
@@ -1252,59 +1524,59 @@ let M = class extends m {
     `;
   }
   async renderCustomView() {
-    const t = E(this, f)?.twoFactorView;
-    if (!t) return z;
+    const t = O(this, b)?.twoFactorView;
+    if (!t) return S;
     try {
-      const e = await jt(t);
-      return typeof e == "object" && (e.providers = this.providers.map((r) => r.value), e.returnPath = E(this, f)?.returnPath ?? ""), er(e);
+      const e = await Mr(t);
+      return typeof e == "object" && (e.providers = this.providers.map((r) => r.value), e.returnPath = O(this, b)?.returnPath ?? ""), Ar(e);
     } catch (e) {
       const r = e instanceof Error ? e.message : "Unknown error";
-      return console.group("[MFA login] Failed to load custom view"), console.log("Element reference", this), console.log("Custom view", t), console.error("Failed to load custom view:", e), console.groupEnd(), n`<span class="text-danger">${r}</span>`;
+      return console.group("[MFA login] Failed to load custom view"), console.log("Element reference", this), console.log("Custom view", t), console.error("Failed to load custom view:", e), console.groupEnd(), u`<span class="text-danger">${r}</span>`;
     }
   }
   render() {
-    return E(this, f)?.twoFactorView ? gt(this.renderCustomView(), n`
+    return O(this, b)?.twoFactorView ? Ut(this.renderCustomView(), u`
           <uui-loader-bar></uui-loader-bar>`) : this.renderDefaultView();
   }
 };
-f = /* @__PURE__ */ new WeakMap();
-Q = /* @__PURE__ */ new WeakSet();
-tt = function() {
-  this.providers = E(this, f)?.mfaProviders.map((t) => ({ name: t, value: t, selected: !1 })) ?? [], this.providers.length ? this.providers[0].selected = !0 : this.error = "Error: No providers available";
+b = /* @__PURE__ */ new WeakMap();
+ne = /* @__PURE__ */ new WeakSet();
+wt = function() {
+  this.providers = O(this, b)?.mfaProviders.map((t) => ({ name: t, value: t, selected: !1 })) ?? [], this.providers.length ? this.providers[0].selected = !0 : this.error = "Error: No providers available";
 };
-rt = async function(t) {
-  if (t.preventDefault(), !E(this, f)) return;
+vt = async function(t) {
+  if (t.preventDefault(), !O(this, b)) return;
   this.error = null;
   const e = t.target;
   if (!e) return;
   const r = e.elements.namedItem("mfacode");
   if (r && (r.error = !1, r.errorMessage = "", r.setCustomValidity("")), !e.checkValidity()) return;
-  const a = new FormData(e);
-  let o = a.get("provider");
-  if (!o) {
+  const o = new FormData(e);
+  let a = o.get("provider");
+  if (!a) {
     if (!this.providers.length) {
       this.error = "No providers available";
       return;
     }
-    o = this.providers[0].value;
+    a = this.providers[0].value;
   }
-  if (!o) {
+  if (!a) {
     this.error = "No provider selected";
     return;
   }
-  const s = a.get("token");
+  const s = o.get("token");
   this.buttonState = "waiting";
-  const i = await E(this, f).validateMfaCode(s, o);
+  const i = await O(this, b).validateMfaCode(s, a);
   if (i.error) {
     r ? (r.error = !0, r.errorMessage = i.error) : this.error = i.error, this.buttonState = "failed";
     return;
   }
   this.buttonState = "success";
-  const q = E(this, f).returnPath;
-  q && (location.href = q);
+  const n = O(this, b).returnPath;
+  n && (location.href = n);
 };
-M.styles = [
-  $`
+F.styles = [
+  k`
       #header {
         text-align: center;
       }
@@ -1352,280 +1624,285 @@ M.styles = [
       }
     `
 ];
-oe([
-  l()
-], M.prototype, "providers", 2);
-oe([
-  l()
-], M.prototype, "buttonState", 2);
-oe([
-  l()
-], M.prototype, "error", 2);
-M = oe([
-  p("umb-mfa-page")
-], M);
-var or = Object.defineProperty, ir = Object.getOwnPropertyDescriptor, at = (t) => {
+me([
+  c()
+], F.prototype, "providers", 2);
+me([
+  c()
+], F.prototype, "buttonState", 2);
+me([
+  c()
+], F.prototype, "error", 2);
+F = me([
+  w("umb-mfa-page")
+], F);
+var Vr = Object.defineProperty, Br = Object.getOwnPropertyDescriptor, bt = (t) => {
   throw TypeError(t);
-}, L = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? ir(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && or(e, r, o), o;
-}, _e = (t, e, r) => e.has(t) || at("Cannot " + r), R = (t, e, r) => (_e(t, e, "read from private field"), e.get(t)), Ue = (t, e, r) => e.has(t) ? at("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), sr = (t, e, r, a) => (_e(t, e, "write to private field"), e.set(t, r), r), he = (t, e, r) => (_e(t, e, "access private method"), r), C, W, ot, it, st;
-let P = class extends m {
+}, T = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Br(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && Vr(e, r, a), a;
+}, Le = (t, e, r) => e.has(t) || bt("Cannot " + r), j = (t, e, r) => (Le(t, e, "read from private field"), e.get(t)), Ne = (t, e, r) => e.has(t) ? bt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Nr = (t, e, r, o) => (Le(t, e, "write to private field"), e.set(t, r), r), _e = (t, e, r) => (Le(t, e, "access private method"), r), E, H, yt, _t, Ct;
+let I = class extends v {
   constructor() {
-    super(), Ue(this, W), this.state = void 0, this.page = "new", this.error = "", this.userId = "", this.resetCode = "", this.loading = !0, Ue(this, C), this.consumeContext(I, (t) => {
-      sr(this, C, t), he(this, W, ot).call(this);
+    super(), Ne(this, H), this.state = void 0, this.page = "new", this.error = "", this.userId = "", this.resetCode = "", this.loading = !0, Ne(this, E), this.consumeContext(U, (t) => {
+      Nr(this, E, t), _e(this, H, yt).call(this);
     });
   }
   render() {
-    return this.loading ? n`<uui-loader-bar></uui-loader-bar>` : he(this, W, st).call(this);
+    return this.loading ? u`<uui-loader-bar></uui-loader-bar>` : _e(this, H, Ct).call(this);
   }
 };
-C = /* @__PURE__ */ new WeakMap();
-W = /* @__PURE__ */ new WeakSet();
-ot = async function() {
+E = /* @__PURE__ */ new WeakMap();
+H = /* @__PURE__ */ new WeakSet();
+yt = async function() {
   const t = new URLSearchParams(window.location.search), e = t.get("resetCode"), r = t.get("userId");
   if (!r || !e) {
     this.page = "error", this.loading = !1;
     return;
   }
-  if (!R(this, C)) return;
+  if (!j(this, E)) return;
   this.resetCode = e, this.userId = r;
-  const a = await R(this, C).validatePasswordResetCode(this.userId, this.resetCode);
-  if (a.error) {
-    this.page = "error", this.error = a.error, this.loading = !1;
+  const o = await j(this, E).validatePasswordResetCode(this.userId, this.resetCode);
+  if (o.error) {
+    this.page = "error", this.error = o.error, this.loading = !1;
     return;
   }
-  if (!a.passwordConfiguration) {
+  if (!o.passwordConfiguration) {
     this.page = "error", this.error = "Password configuration is missing", this.loading = !1;
     return;
   }
-  R(this, C).passwordConfiguration = a.passwordConfiguration, this.loading = !1;
+  j(this, E).passwordConfiguration = o.passwordConfiguration, this.loading = !1;
 };
-it = async function(t) {
-  if (t.preventDefault(), this.error = "", !R(this, C)) return;
+_t = async function(t) {
+  if (t.preventDefault(), this.error = "", !j(this, E)) return;
   const e = t.detail.password;
   this.state = "waiting";
-  const r = await R(this, C).newPassword(e, this.resetCode, this.userId);
+  const r = await j(this, E).newPassword(e, this.resetCode, this.userId);
   if (r.error) {
     this.state = "failed", this.error = r.error;
     return;
   }
   this.state = "success", this.page = "done";
 };
-st = function() {
+Ct = function() {
   switch (this.page) {
     case "new":
-      return n`
+      return u`
           <umb-new-password-layout
-            @submit=${he(this, W, it)}
+            @submit=${_e(this, H, _t)}
             .userId=${this.userId}
             .state=${this.state}
             .error=${this.error}></umb-new-password-layout>`;
     case "error":
-      return n`
+      return u`
           <umb-error-layout
             header=${this.localize.term("auth_error")}
             message=${this.error ?? this.localize.term("auth_defaultError")}>
           </umb-error-layout>`;
     case "done":
-      return n`
+      return u`
           <umb-confirmation-layout
             header=${this.localize.term("auth_success")}
             message=${this.localize.term("auth_setPasswordConfirmation")}>
           </umb-confirmation-layout>`;
   }
 };
-L([
-  l()
-], P.prototype, "state", 2);
-L([
-  l()
-], P.prototype, "page", 2);
-L([
-  l()
-], P.prototype, "error", 2);
-L([
-  l()
-], P.prototype, "userId", 2);
-L([
-  l()
-], P.prototype, "resetCode", 2);
-L([
-  l()
-], P.prototype, "loading", 2);
-P = L([
-  p("umb-new-password-page")
-], P);
-var nr = Object.defineProperty, ur = Object.getOwnPropertyDescriptor, nt = (t) => {
+T([
+  c()
+], I.prototype, "state", 2);
+T([
+  c()
+], I.prototype, "page", 2);
+T([
+  c()
+], I.prototype, "error", 2);
+T([
+  c()
+], I.prototype, "userId", 2);
+T([
+  c()
+], I.prototype, "resetCode", 2);
+T([
+  c()
+], I.prototype, "loading", 2);
+I = T([
+  w("umb-new-password-page")
+], I);
+var jr = Object.defineProperty, Hr = Object.getOwnPropertyDescriptor, xt = (t) => {
   throw TypeError(t);
-}, ye = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? ur(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = (a ? i(e, r, o) : i(o)) || o);
-  return a && o && nr(e, r, o), o;
-}, ut = (t, e, r) => e.has(t) || nt("Cannot " + r), lr = (t, e, r) => (ut(t, e, "read from private field"), r ? r.call(t) : e.get(t)), De = (t, e, r) => e.has(t) ? nt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), ce = (t, e, r) => (ut(t, e, "access private method"), r), Ce, B, lt, dt, ht;
-let G = class extends m {
+}, Se = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Hr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = (o ? i(e, r, a) : i(a)) || a);
+  return o && a && jr(e, r, a), a;
+}, $t = (t, e, r) => e.has(t) || xt("Cannot " + r), Gr = (t, e, r) => ($t(t, e, "read from private field"), r ? r.call(t) : e.get(t)), je = (t, e, r) => e.has(t) ? xt("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Ce = (t, e, r) => ($t(t, e, "access private method"), r), Oe, G, Pt, zt, Et;
+let K = class extends v {
   constructor() {
-    super(...arguments), De(this, B), this.resetCallState = void 0, this.error = "", De(this, Ce, async (t) => {
+    super(...arguments), je(this, G), this.resetCallState = void 0, this.error = "", je(this, Oe, async (t) => {
       t.preventDefault();
       const e = t.target;
       if (!e || !e.checkValidity()) return;
-      const a = new FormData(e).get("email");
+      const o = new FormData(e).get("email");
       this.resetCallState = "waiting";
-      const s = await (await this.getContext(I)).resetPassword(a);
+      const a = await this.getContext(U);
+      if (!a) {
+        this.resetCallState = "failed", this.error = "Authentication context not available.";
+        return;
+      }
+      const s = await a.resetPassword(o);
       this.resetCallState = s.error ? "failed" : "success", this.error = s.error || "";
     });
   }
   render() {
-    return this.resetCallState === "success" ? ce(this, B, ht).call(this) : ce(this, B, lt).call(this);
+    return this.resetCallState === "success" ? Ce(this, G, Et).call(this) : Ce(this, G, Pt).call(this);
   }
 };
-Ce = /* @__PURE__ */ new WeakMap();
-B = /* @__PURE__ */ new WeakSet();
-lt = function() {
-  return n`
-      <uui-form>
-        <form id="LoginForm" name="login" @submit="${lr(this, Ce)}">
-          <header id="header">
-            <h1>
-              <umb-localize key="auth_forgottenPassword">Forgotten password?</umb-localize>
-            </h1>
-            <span>
+Oe = /* @__PURE__ */ new WeakMap();
+G = /* @__PURE__ */ new WeakSet();
+Pt = function() {
+  return u`
+			<uui-form>
+				<form id="LoginForm" name="login" @submit="${Gr(this, Oe)}">
+					<header id="header">
+						<h1>
+							<umb-localize key="auth_forgottenPassword">Forgotten password?</umb-localize>
+						</h1>
+						<span>
 							<umb-localize key="auth_forgottenPasswordInstruction">
-                An email will be sent to the address specified with a link to reset your password
-              </umb-localize>
+								An email will be sent to the address specified with a link to reset your password
+							</umb-localize>
 						</span>
-          </header>
+					</header>
 
-          <uui-form-layout-item>
-            <uui-label for="email" slot="label" required>
-              <umb-localize key="auth_email">Email</umb-localize>
-            </uui-label>
-            <uui-input
-              type="email"
-              id="email"
-              name="email"
-              .label=${this.localize.term("auth_email")}
-              required
-              required-message=${this.localize.term("auth_required")}>
-            </uui-input>
-          </uui-form-layout-item>
+					<uui-form-layout-item>
+						<uui-label for="email" slot="label" required>
+							<umb-localize key="auth_email">Email</umb-localize>
+						</uui-label>
+						<uui-input
+							type="email"
+							id="email"
+							name="email"
+							.label=${this.localize.term("auth_email")}
+							required
+							required-message=${this.localize.term("auth_required")}>
+						</uui-input>
+					</uui-form-layout-item>
 
-          ${ce(this, B, dt).call(this)}
+					${Ce(this, G, zt).call(this)}
 
-          <uui-button
-            type="submit"
-            .label=${this.localize.term("auth_submit")}
-            look="primary"
-            color="default"
-            .state=${this.resetCallState}></uui-button>
-        </form>
-      </uui-form>
+					<uui-button
+						type="submit"
+						.label=${this.localize.term("auth_submit")}
+						look="primary"
+						color="default"
+						.state=${this.resetCallState}></uui-button>
+				</form>
+			</uui-form>
 
-      <umb-back-to-login-button style="margin-top: var(--uui-size-space-6)"></umb-back-to-login-button>
-    `;
+			<umb-back-to-login-button style="margin-top: var(--uui-size-space-6)"></umb-back-to-login-button>
+		`;
 };
-dt = function() {
-  return !this.error || this.resetCallState !== "failed" ? z : n`<span class="text-danger">${this.error}</span>`;
+zt = function() {
+  return !this.error || this.resetCallState !== "failed" ? S : u`<span class="text-danger">${this.error}</span>`;
 };
-ht = function() {
-  return n`
-      <umb-confirmation-layout
-        header=${this.localize.term("auth_forgottenPassword")}
-        message=${this.localize.term("auth_requestPasswordResetConfirmation")}>
-      </umb-confirmation-layout>
-    `;
+Et = function() {
+  return u`
+			<umb-confirmation-layout
+				header=${this.localize.term("auth_forgottenPassword")}
+				message=${this.localize.term("auth_requestPasswordResetConfirmation")}>
+			</umb-confirmation-layout>
+		`;
 };
-G.styles = [
-  $`
-      #header {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        gap: var(--uui-size-space-5);
-      }
+K.styles = [
+  k`
+			#header {
+				text-align: center;
+				display: flex;
+				flex-direction: column;
+				gap: var(--uui-size-space-5);
+			}
 
-      #header span {
-        color: var(--uui-color-text-alt); /* TODO Change to uui color when uui gets a muted text variable */
-        font-size: 14px;
-      }
+			#header span {
+				color: var(--uui-color-text-alt); /* TODO Change to uui color when uui gets a muted text variable */
+				font-size: 14px;
+			}
 
-      #header h1 {
-        margin: 0;
-        font-weight: 400;
-        font-size: var(--header-secondary-font-size);
-        color: var(--uui-color-interactive);
-        line-height: 1.2;
-      }
+			#header h1 {
+				margin: 0;
+				font-weight: 400;
+				font-size: var(--header-secondary-font-size);
+				color: var(--uui-color-interactive);
+				line-height: 1.2;
+			}
 
-      form {
-        display: flex;
-        flex-direction: column;
-        gap: var(--uui-size-layout-2);
-      }
+			form {
+				display: flex;
+				flex-direction: column;
+				gap: var(--uui-size-layout-2);
+			}
 
-      uui-form-layout-item {
-        margin: 0;
-      }
+			uui-form-layout-item {
+				margin: 0;
+			}
 
-      uui-input,
-      uui-input-password {
-        width: 100%;
-        height: var(--input-height);
-        border-radius: var(--uui-border-radius);
-      }
+			uui-input,
+			uui-input-password {
+				width: 100%;
+				height: var(--input-height);
+				border-radius: var(--uui-border-radius);
+			}
 
-      uui-input {
-        width: 100%;
-      }
+			uui-input {
+				width: 100%;
+			}
 
-      uui-button {
-        width: 100%;
-        --uui-button-padding-top-factor: 1.5;
-        --uui-button-padding-bottom-factor: 1.5;
-      }
+			uui-button {
+				width: 100%;
+				--uui-button-padding-top-factor: 1.5;
+				--uui-button-padding-bottom-factor: 1.5;
+			}
 
-      #resend {
-        display: inline-flex;
-        font-size: 14px;
-        align-self: center;
-        gap: var(--uui-size-space-1);
-      }
+			#resend {
+				display: inline-flex;
+				font-size: 14px;
+				align-self: center;
+				gap: var(--uui-size-space-1);
+			}
 
-      #resend a {
-        color: var(--uui-color-selected);
-        font-weight: 600;
-        text-decoration: none;
-      }
+			#resend a {
+				color: var(--uui-color-selected);
+				font-weight: 600;
+				text-decoration: none;
+			}
 
-      #resend a:hover {
-        color: var(--uui-color-interactive-emphasis);
-      }
-    `
+			#resend a:hover {
+				color: var(--uui-color-interactive-emphasis);
+			}
+		`
 ];
-ye([
-  l()
-], G.prototype, "resetCallState", 2);
-ye([
-  l()
-], G.prototype, "error", 2);
-G = ye([
-  p("umb-reset-password-page")
-], G);
-var dr = Object.getOwnPropertyDescriptor, ct = (t) => {
+Se([
+  c()
+], K.prototype, "resetCallState", 2);
+Se([
+  c()
+], K.prototype, "error", 2);
+K = Se([
+  w("umb-reset-password-page")
+], K);
+var Jr = Object.getOwnPropertyDescriptor, It = (t) => {
   throw TypeError(t);
-}, hr = (t, e, r, a) => {
-  for (var o = a > 1 ? void 0 : a ? dr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
-    (i = t[s]) && (o = i(o) || o);
-  return o;
-}, cr = (t, e, r) => e.has(t) || ct("Cannot " + r), pr = (t, e, r) => e.has(t) ? ct("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), mr = (t, e, r) => (cr(t, e, "access private method"), r), pe, pt;
-let me = class extends m {
+}, Zr = (t, e, r, o) => {
+  for (var a = o > 1 ? void 0 : o ? Jr(e, r) : e, s = t.length - 1, i; s >= 0; s--)
+    (i = t[s]) && (a = i(a) || a);
+  return a;
+}, Yr = (t, e, r) => e.has(t) || It("Cannot " + r), Kr = (t, e, r) => e.has(t) ? It("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(t) : e.set(t, r), Qr = (t, e, r) => (Yr(t, e, "access private method"), r), xe, kt;
+let $e = class extends v {
   constructor() {
-    super(...arguments), pr(this, pe);
+    super(...arguments), Kr(this, xe);
   }
   render() {
-    return n`
-			<button type="button" @click=${mr(this, pe, pt)}>
+    return u`
+			<button type="button" @click=${Qr(this, xe, kt)}>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 					<path
 						fill="currentColor"
@@ -1636,12 +1913,12 @@ let me = class extends m {
 		`;
   }
 };
-pe = /* @__PURE__ */ new WeakSet();
-pt = function() {
+xe = /* @__PURE__ */ new WeakSet();
+kt = function() {
   this.dispatchEvent(new CustomEvent("umb-login-flow", { composed: !0, detail: { flow: "login" } }));
 };
-me.styles = [
-  $`
+$e.styles = [
+  k`
 			:host {
 				display: flex;
 				align-items: center;
@@ -1669,13 +1946,13 @@ me.styles = [
 			}
 		`
 ];
-me = hr([
-  p("umb-back-to-login-button")
-], me);
+$e = Zr([
+  w("umb-back-to-login-button")
+], $e);
 export {
-  I as UMB_AUTH_CONTEXT,
-  kt as UmbAuthContext,
-  O as UmbAuthLayoutElement,
-  Lt as UmbSlimBackofficeController
+  U as UMB_AUTH_CONTEXT,
+  pr as UmbAuthContext,
+  M as UmbAuthLayoutElement,
+  mr as UmbSlimBackofficeController
 };
 //# sourceMappingURL=login.js.map

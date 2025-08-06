@@ -10,7 +10,7 @@ export const UmbClassMixin = (superClass) => {
             this._host.addUmbController(this);
         }
         getHostElement() {
-            return this._host.getHostElement();
+            return this._host?.getHostElement();
         }
         get controllerAlias() {
             return this._controllerAlias;
@@ -41,20 +41,26 @@ export const UmbClassMixin = (superClass) => {
         consumeContext(contextAlias, callback) {
             return new UmbContextConsumerController(this, contextAlias, callback);
         }
-        async getContext(contextAlias) {
+        async getContext(contextAlias, options) {
             const controller = new UmbContextConsumerController(this, contextAlias);
-            const promise = controller.asPromise().then((result) => {
-                controller.destroy();
-                return result;
-            });
-            return promise;
+            if (options) {
+                if (options.passContextAliasMatches) {
+                    controller.passContextAliasMatches();
+                }
+                if (options.skipHost) {
+                    controller.skipHost();
+                }
+            }
+            return controller.asPromise(options);
         }
         destroy() {
             if (this._host) {
                 this._host.removeUmbController(this);
-                this._host = undefined;
             }
             super.destroy();
+            if (this._host) {
+                this._host = undefined;
+            }
         }
     }
     return UmbClassMixinClass;
