@@ -5,7 +5,7 @@ builder.CreateUmbracoBuilder()
     .AddWebsite()
     .AddComposers()
     .Build();
-
+// Add Services
 WebApplication app = builder.Build();
 
 // Ensure the media directory exists
